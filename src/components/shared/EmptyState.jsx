@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
 
 export default function EmptyState({ icon: Icon, title, description, actionLabel, onAction, compact }) {
@@ -12,7 +13,7 @@ export default function EmptyState({ icon: Icon, title, description, actionLabel
     >
       {Icon && (
         <div className="w-12 h-12 rounded-full bg-cream border border-hair flex items-center justify-center mb-4">
-          <Icon className="w-5 h-5 text-ink" strokeWidth={1.5} />
+          <HugeiconsIcon icon={Icon} className="w-5 h-5 text-ink" />
         </div>
       )}
       <h3 className="font-serif text-xl text-ink mb-1">{title}</h3>

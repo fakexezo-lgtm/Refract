@@ -3,7 +3,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Search, User, CheckSquare, Plus, ArrowRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Search01Icon, UserIcon, CheckmarkSquareIcon, Add01Icon, ArrowRight01Icon, Plus } from "@hugeicons/core-free-icons";
 import Avatar from "@/components/shared/Avatar";
 
 export default function CommandPalette({ open, onOpenChange, onQuickAddClient }) {
@@ -56,7 +57,7 @@ export default function CommandPalette({ open, onOpenChange, onQuickAddClient })
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl border-hair bg-white shadow-2xl">
         <div className="flex items-center gap-3 px-4 h-14 border-b border-hair">
-          <Search className="w-4 h-4 text-soft" />
+          <HugeiconsIcon icon={Search01Icon} className="w-4 h-4 text-soft" />
           <input
             autoFocus
             value={q}
@@ -82,9 +83,9 @@ export default function CommandPalette({ open, onOpenChange, onQuickAddClient })
                 <Avatar name={r.label} color={r.client?.avatar_color} size="sm" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-whisper border border-hair flex items-center justify-center">
-                  {r.kind === "task" ? <CheckSquare className="w-4 h-4 text-ink" strokeWidth={1.75} /> :
-                   r.kind === "action" ? <Plus className="w-4 h-4 text-ink" strokeWidth={1.75} /> :
-                   <User className="w-4 h-4 text-ink" strokeWidth={1.75} />}
+                  {r.kind === "task" ? <HugeiconsIcon icon={CheckmarkSquareIcon} className="w-4 h-4 text-ink" strokeWidth={1.75} /> :
+                   r.kind === "action" ? <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 text-ink" strokeWidth={1.75} /> :
+                   <HugeiconsIcon icon={UserIcon} className="w-4 h-4 text-ink" strokeWidth={1.75} />}
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -92,7 +93,7 @@ export default function CommandPalette({ open, onOpenChange, onQuickAddClient })
                 {r.sub && <div className="text-xs text-soft truncate">{r.sub}</div>}
               </div>
               <span className="text-[10px] uppercase tracking-wider text-soft">{r.kind}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-soft" />
+              <HugeiconsIcon icon={ArrowRight01Icon} className="w-3.5 h-3.5 text-soft" />
             </button>
           ))}
         </div>

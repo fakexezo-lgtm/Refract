@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, TrendingUp } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, TrendingUp } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { STAGES } from "@/lib/constants";
@@ -42,7 +43,7 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
       <div className="flex justify-between items-center">
         <div className="text-[11px] uppercase tracking-[0.15em] text-soft">Deals · {deals.length}</div>
         <Button onClick={onAdd} variant="outline" size="sm" className="rounded-full h-8 bg-white border-hair">
-          <Plus className="w-3 h-3 mr-1" /> New deal
+          <HugeiconsIcon icon={Add01Icon} className="w-3 h-3 mr-1" /> New deal
         </Button>
       </div>
       <AnimatePresence>

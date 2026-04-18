@@ -4,7 +4,8 @@ import Avatar from "@/components/shared/Avatar";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { timeAgo } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function ClientRow({ client, nextTask }) {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function ClientRow({ client, nextTask }) {
       </div>
       <div className="hidden sm:flex items-center gap-3 shrink-0">
         <StatusBadge status={client.status} />
-        <ArrowUpRight className="w-4 h-4 text-soft group-hover:text-ink transition" />
+        <HugeiconsIcon icon={ArrowUpRight01Icon} className="w-4 h-4 text-soft group-hover:text-ink transition" />
       </div>
     </motion.button>
   );

@@ -1,16 +1,17 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { StickyNote, CheckSquare, TrendingUp, UserPlus, Circle } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Note02Icon, CheckmarkSquareIcon, TrendingUp, UserAdd01Icon, CircleIcon } from "@hugeicons/core-free-icons";
 import { timeAgo, timelineGroup } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
 
 const ICONS = {
-  note: StickyNote,
-  task_created: CheckSquare,
-  task_completed: CheckSquare,
+  note: Note02Icon,
+  task_created: CheckmarkSquareIcon,
+  task_completed: CheckmarkSquareIcon,
   deal_created: TrendingUp,
   deal_stage_changed: TrendingUp,
-  client_created: UserPlus,
+  client_created: UserAdd01Icon,
 };
 
 const LABELS = {
@@ -27,7 +28,7 @@ export default function Timeline({ activities = [], onAddNote }) {
     return (
       <div className="rounded-2xl bg-cream border border-hair">
         <EmptyState
-          icon={StickyNote}
+          icon={Note02Icon}
           title="Nothing here yet."
           description="The timeline is the relationship's story. Start with a note."
           actionLabel="Add first note"
@@ -56,7 +57,7 @@ export default function Timeline({ activities = [], onAddNote }) {
             <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
             <AnimatePresence initial={false}>
               {groups[group].map((a, i) => {
-                const Icon = ICONS[a.type] || Circle;
+                const IconComponent = ICONS[a.type] || CircleIcon;
                 return (
                   <motion.div
                     key={a.id}
@@ -66,7 +67,7 @@ export default function Timeline({ activities = [], onAddNote }) {
                     className="relative pb-4"
                   >
                     <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border border-hair flex items-center justify-center">
-                      <Icon className="w-2.5 h-2.5 text-ink" strokeWidth={2} />
+                      <HugeiconsIcon icon={IconComponent} className="w-2.5 h-2.5 text-ink" strokeWidth={2} />
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="flex-1">

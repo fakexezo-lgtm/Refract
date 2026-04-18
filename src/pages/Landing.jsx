@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Clock, Users, Sparkles, CheckCircle2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon, ClockIcon, UserIcon, SparklesIcon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 
@@ -44,7 +45,7 @@ export default function Landing() {
           className="max-w-3xl"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cream border border-hair text-xs text-soft mb-6">
-            <Sparkles className="w-3 h-3" /> A quieter CRM for independent operators
+            <HugeiconsIcon icon={SparklesIcon} className="w-3 h-3" /> A quieter CRM for independent operators
           </div>
           <h1 className="font-serif text-[44px] leading-[1.05] md:text-[76px] md:leading-[1.02] tracking-tight mb-6">
             The client <em className="italic text-soft">remembered</em>,<br />
@@ -57,7 +58,7 @@ export default function Landing() {
           <div className="flex flex-wrap gap-3">
             <button onClick={handleAuth} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-charcoal text-white hover:bg-black transition group">
               Get started
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button onClick={handleAuth} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-hair text-ink hover:bg-cream transition">
               Log in
@@ -121,9 +122,9 @@ export default function Landing() {
         </div>
         <div className="grid md:grid-cols-3 gap-5">
           {[
-            { icon: Users, title: "Client-first", desc: "Every note, task, and deal belongs to a client. Context is never lost." },
-            { icon: Clock, title: "Always current", desc: "Last contacted, next action, full history — visible the moment you need it." },
-            { icon: CheckCircle2, title: "Quietly fast", desc: "Optimistic UI, command palette, and gentle motion. Designed to stay out of your way." },
+            { icon: UserIcon, title: "Client-first", desc: "Every note, task, and deal belongs to a client. Context is never lost." },
+            { icon: ClockIcon, title: "Always current", desc: "Last contacted, next action, full history — visible the moment you need it." },
+            { icon: CheckmarkCircle02Icon, title: "Quietly fast", desc: "Optimistic UI, command palette, and gentle motion. Designed to stay out of your way." },
           ].map((f, i) => (
             <motion.div
               key={i}
@@ -132,7 +133,7 @@ export default function Landing() {
               className="p-6 rounded-2xl bg-white border border-hair"
             >
               <div className="w-9 h-9 rounded-lg bg-cream flex items-center justify-center mb-4">
-                <f.icon className="w-4 h-4 text-ink" strokeWidth={1.75} />
+                <HugeiconsIcon icon={f.icon} className="w-4 h-4 text-ink" strokeWidth={1.75} />
               </div>
               <div className="font-serif text-xl mb-1">{f.title}</div>
               <div className="text-sm text-soft leading-relaxed">{f.desc}</div>
@@ -149,7 +150,7 @@ export default function Landing() {
             <h3 className="font-serif text-3xl md:text-5xl mb-4">Start remembering everything.</h3>
             <p className="text-white/70 mb-8">Bring your clients into a single calm workspace. Free to try.</p>
             <button onClick={handleAuth} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-cream text-ink hover:bg-white transition">
-              Get started <ArrowRight className="w-4 h-4" />
+              Get started <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
             </button>
           </div>
         </div>

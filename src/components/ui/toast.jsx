@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva } from "class-variance-authority";
-import { X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Close } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 const ToastProvider = React.forwardRef(({ ...props }, ref) => (
@@ -70,7 +71,7 @@ const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
     toast-close=""
     {...props}
   >
-    <X className="h-4 w-4" />
+    <HugeiconsIcon icon={Close} className="h-4 w-4" />
   </button>
 ));
 ToastClose.displayName = "ToastClose";
@@ -101,4 +102,4 @@ export {
   ToastDescription,
   ToastClose,
   ToastAction,
-}; 
+};

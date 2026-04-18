@@ -3,24 +3,33 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('refract_user');
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('refract_user'));
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [authChecked, setAuthChecked] = useState(true);
   const [appPublicSettings, setAppPublicSettings] = useState({ id: 'local', public_settings: {} });
 
+
   const logout = (shouldRedirect = true) => {
+    localStorage.removeItem('refract_user');
     setUser(null);
     setIsAuthenticated(false);
+    if (shouldRedirect) window.location.href = '/';
   };
 
   const navigateToLogin = () => {
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
-  const checkUserAuth = async () => {};
+  const checkUserAuth = async () => {
+    const stored = localStorage.getItem('refract_user');
+    if (stored) setUser(JSON.parse(stored));
+  };
   const checkAppState = async () => {};
 
   return (

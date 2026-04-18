@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, KanbanSquare, CheckSquare, Settings, Search, Plus, Menu, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Plus, Menu01Icon, Close, FolderKanbanIcon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import CommandPalette from "@/components/command/CommandPalette";
@@ -8,11 +9,11 @@ import QuickAddClientDialog from "@/components/clients/QuickAddClientDialog";
 import { useHotkeys } from "@/hooks/useHotkeys";
 
 const NAV = [
-  { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/app/clients", label: "Clients", icon: Users },
-  { to: "/app/pipeline", label: "Pipeline", icon: KanbanSquare },
-  { to: "/app/tasks", label: "Tasks", icon: CheckSquare },
-  { to: "/app/settings", label: "Settings", icon: Settings },
+  { to: "/app", label: "Dashboard", icon: DashboardSquareIcon, end: true },
+  { to: "/app/clients", label: "Clients", icon: UserIcon },
+  { to: "/app/pipeline", label: "Pipeline", icon: FolderKanbanIcon },
+  { to: "/app/tasks", label: "Tasks", icon: CheckmarkSquareIcon },
+  { to: "/app/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
@@ -29,7 +30,7 @@ function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
         onClick={onCommand}
         className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 text-sm mb-2 transition"
       >
-        <Search className="w-4 h-4" strokeWidth={1.75} />
+        <HugeiconsIcon icon={SearchIcon} className="w-4 h-4" />
         <span className="flex-1 text-left">Search or jump to…</span>
         <kbd className="hidden md:inline text-[10px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10">⌘K</kbd>
       </button>
@@ -38,7 +39,7 @@ function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
         onClick={onAdd}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cream text-ink hover:bg-white transition text-sm font-medium mb-6"
       >
-        <Plus className="w-4 h-4" strokeWidth={2} /> New client
+        <HugeiconsIcon icon={Plus} className="w-4 h-4" /> New client
       </button>
 
       <nav className="flex-1 space-y-0.5">
@@ -56,7 +57,7 @@ function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
           >
             {({ isActive }) => (
               <>
-                <item.icon className="w-4 h-4" strokeWidth={1.75} />
+                <HugeiconsIcon icon={item.icon} className="w-4 h-4" />
                 <span>{item.label}</span>
                 {isActive && (
                   <motion.span layoutId="navdot" className="ml-auto w-1.5 h-1.5 rounded-full bg-ink" />
@@ -108,10 +109,10 @@ export default function Layout() {
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => setCmdOpen(true)} className="p-2 rounded-lg hover:bg-white/10">
-            <Search className="w-5 h-5" />
+            <HugeiconsIcon icon={SearchIcon} className="w-5 h-5" />
           </button>
           <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg hover:bg-white/10">
-            <Menu className="w-5 h-5" />
+            <HugeiconsIcon icon={Menu01Icon} className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -132,7 +133,7 @@ export default function Layout() {
             >
               <div className="relative h-full">
                 <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 z-10 text-white/70 p-1">
-                  <X className="w-5 h-5" />
+                  <HugeiconsIcon icon={Close} className="w-5 h-5" />
                 </button>
                 <SidebarContent
                   user={user}

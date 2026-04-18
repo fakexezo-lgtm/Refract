@@ -5,7 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { logActivity } from "@/lib/activity";
 import { shortDate, parseISO, isPast } from "@/lib/format";
-import { Check } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle02Icon, CircleIcon, Calendar03Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 export default function TaskRow({ task, client, emphasizeOverdue }) {
@@ -45,7 +46,7 @@ export default function TaskRow({ task, client, emphasizeOverdue }) {
           task.completed ? "bg-ink border-ink" : "border-border hover:border-ink hover:bg-cream"
         )}
       >
-        {task.completed && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+        {task.completed && <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-3 h-3 text-white" strokeWidth={3} />}
       </button>
       <div className="flex-1 min-w-0">
         <div className={cn("text-sm truncate", task.completed && "line-through text-soft")}>{task.title}</div>

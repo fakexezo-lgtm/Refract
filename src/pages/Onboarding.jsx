@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Check } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/lib/AuthContext";
 
 const WORK_TYPES = ["Design studio", "Freelance developer", "Consultant", "Agency", "Creator", "Other"];
@@ -20,7 +21,15 @@ export default function Onboarding() {
   const finish = async () => {
     setBusy(true);
     await base44.entities.Workspace.create({ name: name || (user?.full_name || "My workspace"), work_type: workType, onboarded: true });
-    await base44.auth.updateMe({ onboarded: true });
+
+    // Update local user state
+    const stored = localStorage.getItem('refract_user');
+    if (stored) {
+      const u = JSON.parse(stored);
+      u.onboarded = true;
+      localStorage.setItem('refract_user', JSON.stringify(u));
+    }
+
     if (checkUserAuth) await checkUserAuth();
     navigate("/app");
   };
@@ -39,17 +48,17 @@ export default function Onboarding() {
 
         <div className="flex gap-1.5 mb-10">
           {[0,1,2].map(i => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition ${i <= step ? "bg-ink" : "bg-border"}`} />
+            <div key={i} className={i <= step ? "h-1 flex-1 rounded-full transition bg-ink" : "h-1 flex-1 rounded-full transition bg-border"} />
           ))}
         </div>
 
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="s0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <h1 className="font-serif text-4xl md:text-5xl mb-3">Welcome{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.</h1>
+              <h1 className="font-serif text-4xl md:text-5xl mb-3">Welcome{user?.full_name ? ", " + user.full_name.split(" ")[0] : ""}.</h1>
               <p className="text-soft mb-10 leading-relaxed">Let's set up your workspace in two quick steps. You can change everything later.</p>
               <Button onClick={next} className="bg-charcoal text-white hover:bg-black rounded-full px-6 h-11">
-                Get started <ArrowRight className="w-4 h-4 ml-1" />
+                Get started <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 ml-1" />
               </Button>
             </motion.div>
           )}
@@ -68,7 +77,7 @@ export default function Onboarding() {
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => setStep(0)} className="rounded-full">Back</Button>
                 <Button onClick={next} disabled={!name.trim()} className="bg-charcoal text-white hover:bg-black rounded-full px-6 h-11 ml-auto">
-                  Continue <ArrowRight className="w-4 h-4 ml-1" />
+                  Continue <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </motion.div>
@@ -83,11 +92,11 @@ export default function Onboarding() {
                   <button
                     key={w}
                     onClick={() => setWorkType(w)}
-                    className={`p-4 text-sm text-left rounded-xl border transition ${workType === w ? "bg-charcoal text-white border-charcoal" : "bg-white border-hair hover:bg-cream"}`}
+                    className={workType === w ? "p-4 text-sm text-left rounded-xl border transition bg-charcoal text-white border-charcoal" : "p-4 text-sm text-left rounded-xl border transition bg-white border-hair hover:bg-cream"}
                   >
                     <div className="flex items-center justify-between">
                       <span>{w}</span>
-                      {workType === w && <Check className="w-4 h-4" />}
+                      {workType === w && <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4" />}
                     </div>
                   </button>
                 ))}
@@ -95,7 +104,7 @@ export default function Onboarding() {
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => setStep(1)} className="rounded-full">Back</Button>
                 <Button onClick={finish} disabled={!workType || busy} className="bg-charcoal text-white hover:bg-black rounded-full px-6 h-11 ml-auto">
-                  {busy ? "Setting up…" : "Enter Refract"} <ArrowRight className="w-4 h-4 ml-1" />
+                  {busy ? "Setting up..." : "Enter Refract"} <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </motion.div>

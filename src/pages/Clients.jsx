@@ -2,7 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search, Plus, Users } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SearchIcon, Plus, UserIcon } from "@hugeicons/core-free-icons";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClientRow from "@/components/clients/ClientRow";
@@ -57,14 +58,14 @@ export default function Clients() {
           <p className="text-soft mt-2">{clients.length} total · {clients.filter(c => c.status === "active").length} active</p>
         </div>
         <Button onClick={() => setAddOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white h-11 px-5 self-start md:self-auto">
-          <Plus className="w-4 h-4 mr-1" /> New client
+          <HugeiconsIcon icon={Plus} className="w-4 h-4 mr-1" /> New client
         </Button>
       </div>
 
       {/* Search + filters */}
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-soft" />
+          <HugeiconsIcon icon={SearchIcon} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-soft" />
           <Input
             value={q}
             onChange={e => setQ(e.target.value)}
@@ -100,7 +101,7 @@ export default function Clients() {
         clients.length === 0 ? (
           <div className="rounded-2xl bg-cream border border-hair">
             <EmptyState
-              icon={Users}
+              icon={UserIcon}
               title="No clients yet."
               description="Clients are the center of Refract. Add your first one to start building their timeline."
               actionLabel="Add your first client"
@@ -109,7 +110,7 @@ export default function Clients() {
           </div>
         ) : (
           <div className="rounded-2xl bg-cream border border-hair">
-            <EmptyState icon={Search} title="No matches." description="Try a different search or clear the filter." compact />
+            <EmptyState icon={SearchIcon} title="No matches." description="Try a different search or clear the filter." compact />
           </div>
         )
       ) : (

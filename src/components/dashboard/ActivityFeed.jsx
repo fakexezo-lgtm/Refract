@@ -1,17 +1,19 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { StickyNote, CheckSquare, TrendingUp, UserPlus, Circle } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Note02Icon, CheckmarkSquareIcon, TrendingUp, UserAdd01Icon, CircleIcon } from "@hugeicons/core-free-icons";
+
 import { timeAgo } from "@/lib/format";
 import Avatar from "@/components/shared/Avatar";
 
 const ICONS = {
-  note: StickyNote,
-  task_created: CheckSquare,
-  task_completed: CheckSquare,
+  note: Note02Icon,
+  task_created: CheckmarkSquareIcon,
+  task_completed: CheckmarkSquareIcon,
   deal_created: TrendingUp,
   deal_stage_changed: TrendingUp,
-  client_created: UserPlus,
+  client_created: UserAdd01Icon,
 };
 
 export default function ActivityFeed({ activities = [], clients = [], limit = 8 }) {
@@ -21,7 +23,7 @@ export default function ActivityFeed({ activities = [], clients = [], limit = 8 
   return (
     <div className="space-y-1">
       {items.map((a, i) => {
-        const Icon = ICONS[a.type] || Circle;
+        const HugeiconsIconComponent = ICONS[a.type] || CircleIcon;
         const client = clients.find(c => c.id === a.client_id);
         return (
           <motion.button
@@ -32,7 +34,7 @@ export default function ActivityFeed({ activities = [], clients = [], limit = 8 
             className="w-full flex items-start gap-3 py-3 px-4 rounded-xl hover:bg-white hover:border-hair border border-transparent transition text-left"
           >
             <div className="w-8 h-8 rounded-full bg-cream border border-hair flex items-center justify-center shrink-0 mt-0.5">
-              <Icon className="w-3.5 h-3.5 text-ink" strokeWidth={1.75} />
+              <HugeiconsIcon icon={HugeiconsIconComponent} className="w-3.5 h-3.5 text-ink" strokeWidth={1.75} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm text-ink truncate">{a.content}</div>

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, CheckCircle2, Plus } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle02Icon, Add01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,7 +26,7 @@ export default function ClientTasks({ tasks = [], client, onAdd }) {
   if (tasks.length === 0) {
     return (
       <div className="rounded-2xl bg-cream border border-hair">
-        <EmptyState icon={CheckCircle2} title="No tasks yet." description="What's the next step with this client?" actionLabel="Add first task" onAction={onAdd} compact />
+        <EmptyState icon={CheckmarkCircle02Icon} title="No tasks yet." description="What's the next step with this client?" actionLabel="Add first task" onAction={onAdd} compact />
       </div>
     );
   }
@@ -45,7 +46,7 @@ export default function ClientTasks({ tasks = [], client, onAdd }) {
           className={cn("w-5 h-5 rounded-md border flex items-center justify-center shrink-0",
             task.completed ? "bg-ink border-ink" : "border-border hover:border-ink")}
         >
-          {task.completed && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+          {task.completed && <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-3 h-3 text-white" strokeWidth={3} />}
         </button>
         <div className="flex-1 min-w-0 text-sm">
           <div className={cn(task.completed && "line-through text-soft")}>{task.title}</div>
@@ -64,7 +65,7 @@ export default function ClientTasks({ tasks = [], client, onAdd }) {
       <div className="flex justify-between items-center">
         <div className="text-[11px] uppercase tracking-[0.15em] text-soft">Open · {open.length}</div>
         <Button onClick={onAdd} variant="outline" size="sm" className="rounded-full h-8 bg-white border-hair">
-          <Plus className="w-3 h-3 mr-1" /> New task
+          <HugeiconsIcon icon={Add01Icon} className="w-3 h-3 mr-1" /> New task
         </Button>
       </div>
       <div className="rounded-2xl bg-white border border-hair p-2">

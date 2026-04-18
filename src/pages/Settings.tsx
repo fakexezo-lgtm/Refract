@@ -4,7 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { LogOut, User, Bell, Palette, Shield } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LogoutIcon, UserIcon, Notification01Icon, PaintBrushIcon, ShieldIcon } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 
 function Card({ icon: Icon, title, subtitle, children }) {
@@ -14,7 +15,7 @@ function Card({ icon: Icon, title, subtitle, children }) {
       className="p-6 rounded-2xl bg-white border border-hair"
     >
       <div className="flex items-center gap-2 mb-1">
-        <Icon className="w-4 h-4 text-ink" strokeWidth={1.75} />
+        <HugeiconsIcon icon={Icon} className="w-4 h-4 text-ink" strokeWidth={1.75} />
         <h3 className="font-serif text-xl text-ink">{title}</h3>
       </div>
       {subtitle && <p className="text-sm text-soft mb-4">{subtitle}</p>}
@@ -49,7 +50,7 @@ export default function Settings() {
         <h1 className="font-serif text-4xl md:text-5xl text-ink">Settings</h1>
       </div>
 
-      <Card icon={User} title="Profile" subtitle="How you appear in Refract.">
+      <Card icon={UserIcon} title="Profile" subtitle="How you appear in Refract.">
         <div className="space-y-4">
           <div>
             <label className="text-xs text-soft">Full name</label>
@@ -65,7 +66,7 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card icon={Palette} title="Preferences" subtitle="Small details that make Refract yours.">
+      <Card icon={PaintBrushIcon} title="Preferences" subtitle="Small details that make Refract yours.">
         <div className="space-y-1 divide-y divide-hair">
           <div className="flex items-center justify-between py-3">
             <div>
@@ -84,9 +85,9 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card icon={Shield} title="Account" subtitle="Session and security.">
+      <Card icon={ShieldIcon} title="Account" subtitle="Session and security.">
         <Button onClick={() => logout(true)} variant="outline" className="rounded-full border-hair bg-white hover:bg-cream">
-          <LogOut className="w-4 h-4 mr-1.5" /> Sign out
+          <HugeiconsIcon icon={LogoutIcon} className="w-4 h-4 mr-1.5" /> Sign out
         </Button>
       </Card>
 

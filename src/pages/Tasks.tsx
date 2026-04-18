@@ -2,7 +2,8 @@ import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AnimatePresence } from "framer-motion";
-import { CheckSquare, AlertTriangle, Calendar, Hourglass } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkSquareIcon, AlertCircleIcon, Calendar03Icon, Timer01Icon } from "@hugeicons/core-free-icons";
 import TaskRow from "@/components/dashboard/TaskRow";
 import EmptyState from "@/components/shared/EmptyState";
 import { dueBucket } from "@/lib/format";
@@ -12,7 +13,7 @@ function Section({ icon: Icon, title, count, tone, children, empty }) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-4">
-        <Icon className={`w-4 h-4 ${tone || "text-ink"}`} strokeWidth={1.75} />
+        <HugeiconsIcon icon={Icon} className={'w-4 h-4 ' + (tone || "text-ink")} strokeWidth={1.75} />
         <h2 className="font-serif text-2xl text-ink">{title}</h2>
         <span className="text-xs text-soft">({count})</span>
       </div>
@@ -55,7 +56,7 @@ export default function Tasks() {
       {tasks.length === 0 ? (
         <div className="rounded-2xl bg-cream border border-hair">
           <EmptyState
-            icon={CheckSquare}
+            icon={CheckmarkSquareIcon}
             title="No tasks yet."
             description="Tasks in Refract always belong to a client. Open a client to add one."
             actionLabel="Browse clients"
@@ -64,13 +65,13 @@ export default function Tasks() {
         </div>
       ) : (
         <>
-          <Section icon={AlertTriangle} title="Overdue" count={buckets.overdue.length} tone="text-danger" empty="Nothing overdue. You're on top of it.">
+          <Section icon={AlertCircleIcon} title="Overdue" count={buckets.overdue.length} tone="text-danger" empty="Nothing overdue. You're on top of it.">
             {buckets.overdue.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue />)}
           </Section>
-          <Section icon={Calendar} title="Today" count={buckets.today.length} empty="Nothing scheduled for today.">
+          <Section icon={Calendar03Icon} title="Today" count={buckets.today.length} empty="Nothing scheduled for today.">
             {buckets.today.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} />)}
           </Section>
-          <Section icon={Hourglass} title="Upcoming" count={buckets.upcoming.length} empty="Nothing queued up yet.">
+          <Section icon={Timer01Icon} title="Upcoming" count={buckets.upcoming.length} empty="Nothing queued up yet.">
             {buckets.upcoming.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} />)}
           </Section>
         </>

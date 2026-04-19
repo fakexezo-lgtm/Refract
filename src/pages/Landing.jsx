@@ -13,9 +13,9 @@ export default function Landing() {
     base44.auth.isAuthenticated().then(setAuthed).catch(() => setAuthed(false));
   }, []);
 
-  const handleAuth = () => {
+  const handleAuth = (mode = "login") => {
     if (authed) navigate("/app");
-    else base44.auth.redirectToLogin(window.location.origin + "/app");
+    else navigate(mode === "signup" ? "/login?mode=signup" : "/login");
   };
 
   return (
@@ -29,10 +29,10 @@ export default function Landing() {
           <span className="font-serif text-xl">Refract</span>
         </div>
         <nav className="flex items-center gap-1 md:gap-2">
-          <button onClick={handleAuth} className="px-4 py-2 text-sm text-soft hover:text-ink transition">
+          <button onClick={() => handleAuth("login")} className="px-4 py-2 text-sm text-soft hover:text-ink transition">
             Log in
           </button>
-          <button onClick={handleAuth} className="px-4 py-2 rounded-full text-sm bg-charcoal text-white hover:bg-black transition">
+          <button onClick={() => handleAuth("signup")} className="px-4 py-2 rounded-full text-sm bg-charcoal text-white hover:bg-black transition">
             Sign up
           </button>
         </nav>
@@ -56,11 +56,11 @@ export default function Landing() {
             Every note, task, and deal lives on a single timeline — so you always know who, what, and what's next.
           </p>
           <div className="flex flex-wrap gap-3">
-            <button onClick={handleAuth} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-charcoal text-white hover:bg-black transition group">
+            <button onClick={() => handleAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-charcoal text-white hover:bg-black transition group">
               Get started
               <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
-            <button onClick={handleAuth} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-hair text-ink hover:bg-cream transition">
+            <button onClick={() => handleAuth("login")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-hair text-ink hover:bg-cream transition">
               Log in
             </button>
           </div>
@@ -149,7 +149,7 @@ export default function Landing() {
           <div className="relative max-w-xl">
             <h3 className="font-serif text-3xl md:text-5xl mb-4">Start remembering everything.</h3>
             <p className="text-white/70 mb-8">Bring your clients into a single calm workspace. Free to try.</p>
-            <button onClick={handleAuth} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-cream text-ink hover:bg-white transition">
+            <button onClick={() => handleAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-cream text-ink hover:bg-white transition">
               Get started <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
             </button>
           </div>

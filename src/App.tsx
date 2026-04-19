@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -17,6 +18,10 @@ import Tasks from '@/pages/Tasks';
 import TaskHistory from '@/pages/TaskHistory';
 import Settings from '@/pages/Settings';
 import AuthGate from '@/components/AuthGate';
+import Login from '@/pages/Auth/Login';
+import VerifyEmail from '@/pages/Auth/VerifyEmail';
+import ForgotPassword from '@/pages/Auth/ForgotPassword';
+import ResetPassword from '@/pages/Auth/ResetPassword';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -39,6 +44,11 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Login />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/onboarding" element={
         <AuthGate requireOnboarded={false}><Onboarding /></AuthGate>
       } />

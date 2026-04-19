@@ -1,149 +1,247 @@
-Improve the Task Management UX system without changing the overall design language. Focus ONLY on functionality, interaction patterns, and usability.
+1. Big Problem: No Structure / Weak Information Architecture
 
-1. Add Task Action System (Critical)
-Problem:
+Right now everything is just stacked:
 
-Users can only:
+Profile
+Preferences
+Account
 
-Add task
-Mark complete
+That’s fine for MVP, but it won’t scale.
 
-They cannot:
+Why this is a problem
 
-Edit
-Delete
-Manage tasks
+Users don’t “scan cards”, they scan categories.
+
+Poor grouping is one of the most common UX issues in settings pages and makes navigation harder
+
+Fix: Introduce Proper Settings Structure
+Recommended structure (scalable):
+Settings
+│
+├── Profile
+├── Preferences
+├── Notifications
+├── Appearance
+├── Tasks & Workflow
+├── Account & Security
+└── Data & Privacy
+UI change:
+
+Add left-side tabs (or top tabs) inside Settings page
+
+This instantly:
+
+Reduces cognitive load
+Makes it feel like a serious product
+Future-proofs your app
+2. Missing Critical Settings (Functional Gaps)
+
+Right now your settings are too basic.
+
+A SaaS settings page should give users control over their experience
+
+You are missing these key areas:
+1. Notifications (High priority)
+
+You only have “Weekly digest”
+
+You need:
+
+Email notifications toggle
+Task reminders
+Due date alerts
+Client activity alerts
+2. Task Behavior (VERY important for your product)
+
+This is your core feature but has zero settings.
+
+Add:
+
+Default due date (none / today / tomorrow)
+Auto-complete behavior
+Show completed tasks (toggle)
+Default task view (Today / Upcoming)
+3. Appearance (you only have dark mode)
+
+Expand:
+
+Compact mode (reduce spacing)
+Font size (accessibility)
+Theme accent (optional later)
+4. Account & Security (too weak)
+
+You only have:
+
+Sign out
+
+You NEED:
+
+Change password
+Email change
+Sessions (log out of all devices)
+Delete account (danger zone)
+5. Data / History (important based on your previous request)
+
+Since you care about task history:
+
+Add:
+
+Export tasks (CSV)
+Clear completed tasks
+Data retention control
+3. Missing Feedback System (Important UX flaw)
+
+Right now:
+
+You click “Save changes”
+No strong feedback
+This is dangerous
+
+Users need confirmation.
+
+Good UX requires clear feedback when actions are completed
+
 Fix:
 
-Each task row must support:
+After save:
 
-Tap → open task details
-Swipe left → reveal actions (mobile)
-OR
-Kebab menu (⋯) on right
-Required Actions:
-Edit
-Delete
-Mark complete / Undo
-2. Delete UX (Important)
-Replace blocking modal with:
-Snackbar / Toast with Undo
+Show toast: “Changes saved”
+Disable button while saving
+Add loading state
+4. Form UX Problems
+Issues:
+Email field looks disabled but unclear why
+No validation
+No inline feedback
+Fix:
+Email field:
+Either:
+Make it editable
+OR show: “Contact support to change email”
+Add:
+Inline validation (name required)
+Error states
+Success states
+5. Weak Visual Hierarchy
+
+Right now:
+
+Everything has equal weight
+Nothing stands out
+Fix:
+Improve hierarchy:
+Section titles → stronger (size + weight)
+Descriptions → lighter
+Add dividers between items
+Spacing improvement:
+Reduce vertical padding between cards
+Increase spacing inside sections
+6. Toggle UX Issues
+
+Your toggles are okay visually, but weak contextually.
+
+Fix:
+
+Each toggle should answer:
+
+What happens if ON?
+What happens if OFF?
 
 Example:
 
-Task deleted — Undo (5s)
+Bad:
 
-Use modal ONLY for:
-Bulk delete
-Permanent delete
-3. Edit Task (Must Add)
-Reuse Add Task modal
-Convert to Edit mode
+Weekly digest
 
-Changes:
+Better:
 
-Pre-fill all fields
-CTA → “Save changes”
-Rules:
-Do NOT open new page
-Keep interaction fast and inline
-4. Completed Tasks System
+Weekly digest
+Get a summary of upcoming tasks every Monday
+
+7. Missing “Danger Zone” (Important)
+
+You need a clear destructive section.
+
 Add:
-“Completed” section
-Collapsed by default
-Toggle expand/collapse
-Also Add:
-“View all history” → separate page
-History Page Structure:
+Danger Zone (bottom)
+Delete account
+Clear all data
 
-Group by:
+Style:
 
-Today
-Yesterday
-Last 7 days
-Older
+Red border / subtle highlight
+Separate from rest
+8. No Inline Editing Experience
 
-Each item shows:
+Right now:
 
-Task name
-Client
-Completion date
-5. Layout Fix (Density Issue)
-Problem:
+You edit → click save
+Improve:
+Detect unsaved changes
+Show:
+“Save changes”
+“Discard”
+9. No Context Awareness
 
-Too much empty space
+Your app is client + task based, but settings ignore that.
+
+Add:
+Workspace / App behavior
+Default client view
+Pipeline preferences
+Task grouping behavior
+10. Mobile UX (You’re not thinking about it yet)
+
+Your current layout will break on mobile.
 
 Fix:
-Increase task density
-Reduce vertical gaps
-Collapse empty sections
-6. Improve Task Row UI
+Convert cards → full-width stacked sections
+Tabs → horizontal scroll or dropdown
+Buttons → full width
+11. Micro Improvements That Matter
 
-Each task row must include:
+These are small but high-impact:
 
-Checkbox
-Task name
-Client name
-Due date
-Priority indicator
-7. Add Quick Task Input (High Impact)
-Add at top:
+Add icons per section
+Profile → user icon
+Preferences → sliders
+Security → lock
+Improve CTA
 
-“+ Add a task…”
+“Save changes” → should be:
 
-Behavior:
-Type → press Enter → create task
-Optional expand for details
-8. Keyboard UX
-Keep existing shortcuts (N, J/K)
-Add:
-“?” → show all shortcuts
-Visible hints on focus
-9. Empty State Improvement
+Sticky (bottom right)
+Or inline per section
+Add keyboard UX
+Enter → save
+Esc → cancel
+12. What You Did Right (keep this)
+Clean layout
+Minimal distractions
+Good spacing base
+Clear sections
 
-Replace passive text with actions:
+Don’t overcomplicate visually.
 
-Instead of:
+Final Priorities (Do this in order)
+MUST FIX
+Add settings categories (navigation)
+Add notifications + task settings
+Add feedback (save state)
+HIGH IMPACT
+Improve form UX (validation, email clarity)
+Add security settings
+Add danger zone
+NEXT LEVEL
+Add data/history controls
+Add appearance options
+Add mobile optimization
+One Brutal Truth
 
-Nothing scheduled
+Right now your Settings page feels like:
 
-Use:
+“Basic profile form”
 
-Add task
-Plan your day
-10. Filters & Sorting
+It should feel like:
 
-Add:
-
-Filter by client
-Filter by status
-Sort:
-Due date
-Priority
-11. Modal Improvements
-Autofocus input
-Reduce visual weight
-Add inline validation
-12. System Connectivity
-
-Connect tasks with:
-
-Clients
-Pipeline
-Example:
-From task → open client
-From client → view tasks
-13. Restrictions
-Do NOT redesign UI
-Do NOT change layout system
-Only improve:
-UX
-interactions
-functionality
-14. Goal
-
-Transform task system from:
-❌ Creation-focused
-
-To:
-✅ Full lifecycle system (create, edit, manage, review)
+“Control center for how the product behaves”

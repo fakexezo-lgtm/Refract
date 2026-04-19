@@ -24,7 +24,13 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
       client_id: client.id,
       type: "deal_stage_changed",
       content: `${deal.title}: ${from} → ${to}`,
-      metadata: { deal_id: deal.id, from: deal.stage, to: newStage }
+      metadata: { 
+        deal_id: deal.id, 
+        from: deal.stage, 
+        to: newStage,
+        from_label: from,
+        to_label: to
+      }
     });
     qc.invalidateQueries({ queryKey: ["deals"] });
     qc.invalidateQueries({ queryKey: ["activities"] });
@@ -52,23 +58,34 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
             key={d.id}
             layout
             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="p-4 rounded-2xl bg-white border border-hair flex items-center justify-between gap-4"
+            className="p-5 rounded-3xl bg-white border border-hair hover:border-ink/20 transition-all shadow-sm"
           >
-            <div className="flex-1 min-w-0">
-              <div className="text-ink font-medium truncate">{d.title}</div>
-              {d.value != null && <div className="text-xs text-soft mt-0.5">${d.value.toLocaleString()}</div>}
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex-1 min-w-0">
+                <div className="text-ink font-bold text-lg truncate">{d.title}</div>
+                {d.value != null && <div className="text-sm font-bold text-soft mt-0.5 tracking-tight">${d.value.toLocaleString()}</div>}
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={d.stage} onValueChange={(v) => changeStage(d, v)}>
+                  <SelectTrigger className="w-36 h-10 rounded-full bg-whisper border-hair text-xs font-bold text-ink">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STAGES.map(s => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <StageBadge stage={d.stage} />
-              <Select value={d.stage} onValueChange={(v) => changeStage(d, v)}>
-                <SelectTrigger className="w-32 h-9 rounded-full bg-cream border-hair text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STAGES.map(s => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            
+            {d.next_step && (
+              <div className="flex items-center gap-2 py-3 px-4 bg-cream/50 rounded-2xl border border-hair/50">
+                <div className="text-[10px] font-black uppercase tracking-[0.15em] text-soft">Next Step</div>
+                <div className="text-xs font-bold text-ink truncate">{d.next_step}</div>
+              </div>
+            )}
+            {!d.next_step && (
+              <div className="text-[10px] font-bold text-soft/50 italic px-1">No next step defined for this opportunity.</div>
+            )}
           </motion.div>
         ))}
       </AnimatePresence>

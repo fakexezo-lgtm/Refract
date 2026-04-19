@@ -6,9 +6,12 @@ import { timeAgo } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
+import { differenceInDays, parseISO } from "date-fns";
 
 export default function ClientRow({ client, nextTask }) {
   const navigate = useNavigate();
+  const isStale = client.last_contacted_at && differenceInDays(new Date(), parseISO(client.last_contacted_at)) >= 5;
   return (
     <motion.button
       layout
@@ -22,9 +25,19 @@ export default function ClientRow({ client, nextTask }) {
           <div className="font-medium text-ink truncate">{client.name}</div>
           {client.company && <div className="text-sm text-soft truncate">· {client.company}</div>}
         </div>
-        <div className="text-xs text-soft mt-1 truncate">
-          {client.last_contacted_at ? `Last contacted ${timeAgo(client.last_contacted_at)}` : "No contact yet"}
-          {nextTask && <> · <span className="text-ink">Next: {nextTask.title}</span></>}
+        <div className="text-[11px] mt-1 space-y-0.5 min-w-0">
+          <div className={cn(
+            "flex items-center gap-1.5",
+            isStale ? "text-red-500 font-semibold" : "text-soft"
+          )}>
+            {client.last_contacted_at ? `Last contacted ${timeAgo(client.last_contacted_at)}` : "No contact yet"}
+          </div>
+          {nextTask && (
+            <div className="flex items-center gap-1.5 text-ink truncate font-medium">
+              <span className="text-[10px] uppercase tracking-wider text-soft font-black px-1 border border-hair rounded">Next</span>
+              <span className="truncate">{nextTask.title}</span>
+            </div>
+          )}
         </div>
       </div>
       <div className="hidden sm:flex items-center gap-3 shrink-0">

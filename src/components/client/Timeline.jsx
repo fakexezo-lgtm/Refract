@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Note02Icon, CheckmarkCircle02Icon, TrendingUp, UserAdd01Icon, RecordIcon, CheckmarkSquareIcon } from "@hugeicons/core-free-icons";
 import { timeAgo, timelineGroup } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
+import { cn } from "@/lib/utils";
 
 const ICONS = {
   note: Note02Icon,
@@ -41,8 +42,41 @@ export default function Timeline({ activities = [], onAddNote }) {
   }
 
   // Group by time period
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  const processActivities = (list) => {
+    const result = [];
+    let currentDealGroup = null;
+
+    list.forEach((a, i) => {
+      if (a.type === "deal_stage_changed") {
+        const dealId = a.metadata?.deal_id;
+        const dealTitle = a.content.split(":")[0];
+        
+        if (!currentDealGroup || currentDealGroup.metadata?.deal_id !== dealId) {
+          currentDealGroup = { 
+            ...a, 
+            originalFrom: a.metadata?.from_label || a.metadata?.from || "Start",
+            dealTitle: dealTitle
+          };
+          result.push(currentDealGroup);
+        }
+        
+        const latestTo = a.metadata?.to_label || a.metadata?.to || "Current";
+        currentDealGroup.content = `${currentDealGroup.dealTitle}: ${currentDealGroup.originalFrom} → ${latestTo}`;
+      } else {
+        currentDealGroup = null;
+        result.push(a);
+      }
+    });
+    return result;
+  };
+
+  const processedActivities = processActivities(activities);
+  const visibleActivities = isExpanded ? processedActivities : processedActivities.slice(0, 3);
+
   const groups = {};
-  activities.forEach(a => {
+  visibleActivities.forEach(a => {
     const g = timelineGroup(a.created_date);
     if (!groups[g]) groups[g] = [];
     groups[g].push(a);
@@ -50,40 +84,61 @@ export default function Timeline({ activities = [], onAddNote }) {
   const order = ["Today", "Yesterday", "This week", "Earlier"];
 
   return (
-    <div className="space-y-8">
-      {order.filter(g => groups[g]).map(group => (
-        <div key={group}>
-          <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-3">{group}</div>
-          <div className="relative pl-6">
-            <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
-            <AnimatePresence initial={false}>
-              {groups[group].map((a, i) => {
-                const IconComponent = ICONS[a.type] || RecordIcon;
-                return (
-                  <motion.div
-                    key={a.id}
-                    layout
-                    initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                    transition={{ duration: 0.25, delay: i * 0.03 }}
-                    className="relative pb-4"
-                  >
-                    <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border border-hair flex items-center justify-center">
-                      <HugeiconsIcon icon={IconComponent} className="w-2.5 h-2.5 text-ink" strokeWidth={2} />
-                    </div>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="text-[11px] uppercase tracking-wider text-soft">{LABELS[a.type] || "Activity"}</div>
-                        <div className="text-sm text-ink mt-0.5 whitespace-pre-wrap break-words">{a.content}</div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-ink">Recent History</h3>
+        {processedActivities.length > 3 && (
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-xs font-bold text-soft hover:text-charcoal flex items-center gap-1 transition-colors"
+          >
+            {isExpanded ? "Show less" : `View all history (${processedActivities.length})`}
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-8">
+        {order.filter(g => groups[g]).map(group => (
+          <div key={group} className="relative">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-soft/30 mb-4 px-1">{group}</div>
+            <div className="relative pl-7">
+              <div className="absolute left-[11.5px] top-2 bottom-0 w-px bg-hair/50" />
+              <AnimatePresence initial={false}>
+                {groups[group].map((a, i) => {
+                  const IconComponent = ICONS[a.type] || RecordIcon;
+                  return (
+                    <motion.div
+                      key={a.id}
+                      layout
+                      initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                      className="relative pb-8 last:pb-2"
+                    >
+                      <div className={cn(
+                        "absolute -left-[27.5px] top-0 w-6 h-6 rounded-full bg-white border flex items-center justify-center z-10 shadow-sm",
+                        a.type === "deal_stage_changed" ? "border-charcoal/20 bg-whisper" : "border-hair"
+                      )}>
+                        <HugeiconsIcon icon={IconComponent} className="w-3 h-3 text-ink" strokeWidth={2.5} />
                       </div>
-                      <div className="text-xs text-soft shrink-0">{timeAgo(a.created_date)}</div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                      <div className="flex items-baseline justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-soft/40 mb-1">{LABELS[a.type] || "Activity"}</div>
+                          <div className={cn(
+                            "text-sm leading-relaxed",
+                            a.type === "deal_stage_changed" ? "text-ink font-bold" : "text-ink"
+                          )}>
+                            {a.content}
+                          </div>
+                        </div>
+                        <div className="text-[10px] font-bold text-soft/40 shrink-0 tabular-nums">{timeAgo(a.created_date)}</div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-# Refract CRM
+# <img src="public/logo.png" width="40" height="40" align="center" style="border-radius: 8px;"> Refract CRM
 
 Refract is a modern, intelligence-driven CRM designed to transform static client data into an active sales engine. Built with a focus on **Clarity**, **Momentum**, and **Visual Excellence**, Refract provides an elegant interface for managing relationships, tracking deal pipelines, and automating sales workflows.
 

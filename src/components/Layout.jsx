@@ -20,8 +20,8 @@ function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
   return (
     <div className="h-full flex flex-col bg-charcoal text-white px-5 py-6">
       <div className="flex items-center gap-2 px-2 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-cream flex items-center justify-center">
-          <span className="font-serif text-ink text-lg leading-none">R</span>
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+          <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
         </div>
         <span className="font-serif text-xl tracking-tight">Refract</span>
       </div>
@@ -102,8 +102,8 @@ export default function Layout() {
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 bg-charcoal text-white flex items-center justify-between px-4 h-14 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-cream flex items-center justify-center">
-            <span className="font-serif text-ink leading-none">R</span>
+          <div className="w-7 h-7 rounded-md overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
           </div>
           <span className="font-serif text-lg">Refract</span>
         </div>

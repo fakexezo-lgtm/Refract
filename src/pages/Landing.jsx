@@ -23,8 +23,8 @@ export default function Landing() {
       {/* Nav */}
       <header className="max-w-6xl mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-charcoal flex items-center justify-center">
-            <span className="font-serif text-cream leading-none">R</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
           </div>
           <span className="font-serif text-xl">Refract</span>
         </div>

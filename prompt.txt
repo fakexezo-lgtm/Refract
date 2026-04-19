@@ -1,0 +1,149 @@
+Improve the Task Management UX system without changing the overall design language. Focus ONLY on functionality, interaction patterns, and usability.
+
+1. Add Task Action System (Critical)
+Problem:
+
+Users can only:
+
+Add task
+Mark complete
+
+They cannot:
+
+Edit
+Delete
+Manage tasks
+Fix:
+
+Each task row must support:
+
+Tap → open task details
+Swipe left → reveal actions (mobile)
+OR
+Kebab menu (⋯) on right
+Required Actions:
+Edit
+Delete
+Mark complete / Undo
+2. Delete UX (Important)
+Replace blocking modal with:
+Snackbar / Toast with Undo
+
+Example:
+
+Task deleted — Undo (5s)
+
+Use modal ONLY for:
+Bulk delete
+Permanent delete
+3. Edit Task (Must Add)
+Reuse Add Task modal
+Convert to Edit mode
+
+Changes:
+
+Pre-fill all fields
+CTA → “Save changes”
+Rules:
+Do NOT open new page
+Keep interaction fast and inline
+4. Completed Tasks System
+Add:
+“Completed” section
+Collapsed by default
+Toggle expand/collapse
+Also Add:
+“View all history” → separate page
+History Page Structure:
+
+Group by:
+
+Today
+Yesterday
+Last 7 days
+Older
+
+Each item shows:
+
+Task name
+Client
+Completion date
+5. Layout Fix (Density Issue)
+Problem:
+
+Too much empty space
+
+Fix:
+Increase task density
+Reduce vertical gaps
+Collapse empty sections
+6. Improve Task Row UI
+
+Each task row must include:
+
+Checkbox
+Task name
+Client name
+Due date
+Priority indicator
+7. Add Quick Task Input (High Impact)
+Add at top:
+
+“+ Add a task…”
+
+Behavior:
+Type → press Enter → create task
+Optional expand for details
+8. Keyboard UX
+Keep existing shortcuts (N, J/K)
+Add:
+“?” → show all shortcuts
+Visible hints on focus
+9. Empty State Improvement
+
+Replace passive text with actions:
+
+Instead of:
+
+Nothing scheduled
+
+Use:
+
+Add task
+Plan your day
+10. Filters & Sorting
+
+Add:
+
+Filter by client
+Filter by status
+Sort:
+Due date
+Priority
+11. Modal Improvements
+Autofocus input
+Reduce visual weight
+Add inline validation
+12. System Connectivity
+
+Connect tasks with:
+
+Clients
+Pipeline
+Example:
+From task → open client
+From client → view tasks
+13. Restrictions
+Do NOT redesign UI
+Do NOT change layout system
+Only improve:
+UX
+interactions
+functionality
+14. Goal
+
+Transform task system from:
+❌ Creation-focused
+
+To:
+✅ Full lifecycle system (create, edit, manage, review)

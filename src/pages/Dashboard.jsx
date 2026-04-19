@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkSquareIcon, AlertTriangle, ActivityIcon, FolderKanbanIcon, ArrowRightIcon } from "@hugeicons/core-free-icons";
+import { CheckmarkSquareIcon, AlertCircleIcon, ActivityIcon, FolderKanbanIcon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import TaskRow from "@/components/dashboard/TaskRow";
@@ -53,7 +53,7 @@ export default function Dashboard() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={AlertTriangle} className="w-4 h-4 text-danger" />
+              <HugeiconsIcon icon={AlertCircleIcon} className="w-4 h-4 text-danger" />
               <h2 className="font-serif text-2xl text-ink">Overdue</h2>
               <span className="text-xs text-soft">({overdueTasks.length})</span>
             </div>
@@ -61,7 +61,7 @@ export default function Dashboard() {
           <div className="rounded-2xl bg-[#f0e4e2]/40 border border-[#e8d4d1] p-2">
             <AnimatePresence>
               {overdueTasks.map(t => (
-                <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue />
+                <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue taskIndex={t.id} onEdit={() => {}} />
               ))}
             </AnimatePresence>
           </div>
@@ -91,7 +91,7 @@ export default function Dashboard() {
         ) : (
           <div className="rounded-2xl bg-white border border-hair p-2">
             <AnimatePresence>
-              {todayTasks.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} />)}
+              {todayTasks.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={t.id} onEdit={() => {}} />)}
             </AnimatePresence>
           </div>
         )}
@@ -105,7 +105,7 @@ export default function Dashboard() {
             <h2 className="font-serif text-2xl text-ink">Pipeline</h2>
           </div>
           <button onClick={() => navigate("/app/pipeline")} className="text-xs text-soft hover:text-ink flex items-center gap-1">
-            Open board <HugeiconsIcon icon={ArrowRightIcon} className="w-3 h-3" />
+            Open board <HugeiconsIcon icon={ArrowRight01Icon} className="w-3 h-3" />
           </button>
         </div>
         <PipelineSnapshot deals={deals} />

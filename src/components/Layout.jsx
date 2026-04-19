@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Plus, Menu01Icon, Close, FolderKanbanIcon } from "@hugeicons/core-free-icons";
+import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import CommandPalette from "@/components/command/CommandPalette";
@@ -39,7 +39,7 @@ function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
         onClick={onAdd}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cream text-ink hover:bg-white transition text-sm font-medium mb-6"
       >
-        <HugeiconsIcon icon={Plus} className="w-4 h-4" /> New client
+        <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" /> New client
       </button>
 
       <nav className="flex-1 space-y-0.5">
@@ -133,7 +133,7 @@ export default function Layout() {
             >
               <div className="relative h-full">
                 <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 z-10 text-white/70 p-1">
-                  <HugeiconsIcon icon={Close} className="w-5 h-5" />
+                  <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
                 </button>
                 <SidebarContent
                   user={user}

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { AnimatePresence, motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SearchIcon, Plus, UserIcon } from "@hugeicons/core-free-icons";
+import { SearchIcon, Add01Icon, UserIcon } from "@hugeicons/core-free-icons";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClientRow from "@/components/clients/ClientRow";
@@ -58,7 +58,7 @@ export default function Clients() {
           <p className="text-soft mt-2">{clients.length} total · {clients.filter(c => c.status === "active").length} active</p>
         </div>
         <Button onClick={() => setAddOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white h-11 px-5 self-start md:self-auto">
-          <HugeiconsIcon icon={Plus} className="w-4 h-4 mr-1" /> New client
+          <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-1" /> New client
         </Button>
       </div>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, ClockIcon, UserIcon, SparklesIcon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, Clock01Icon, UserIcon, SparklesIcon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 
@@ -123,7 +123,7 @@ export default function Landing() {
         <div className="grid md:grid-cols-3 gap-5">
           {[
             { icon: UserIcon, title: "Client-first", desc: "Every note, task, and deal belongs to a client. Context is never lost." },
-            { icon: ClockIcon, title: "Always current", desc: "Last contacted, next action, full history — visible the moment you need it." },
+            { icon: Clock01Icon, title: "Always current", desc: "Last contacted, next action, full history — visible the moment you need it." },
             { icon: CheckmarkCircle02Icon, title: "Quietly fast", desc: "Optimistic UI, command palette, and gentle motion. Designed to stay out of your way." },
           ].map((f, i) => (
             <motion.div

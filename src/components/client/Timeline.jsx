@@ -1,17 +1,18 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Note02Icon, CheckmarkSquareIcon, TrendingUp, UserAdd01Icon, CircleIcon } from "@hugeicons/core-free-icons";
+import { Note02Icon, CheckmarkCircle02Icon, TrendingUp, UserAdd01Icon, RecordIcon, CheckmarkSquareIcon } from "@hugeicons/core-free-icons";
 import { timeAgo, timelineGroup } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
 
 const ICONS = {
   note: Note02Icon,
   task_created: CheckmarkSquareIcon,
-  task_completed: CheckmarkSquareIcon,
+  task_completed: CheckmarkCircle02Icon,
   deal_created: TrendingUp,
   deal_stage_changed: TrendingUp,
   client_created: UserAdd01Icon,
+  default: RecordIcon,
 };
 
 const LABELS = {
@@ -57,7 +58,7 @@ export default function Timeline({ activities = [], onAddNote }) {
             <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
             <AnimatePresence initial={false}>
               {groups[group].map((a, i) => {
-                const IconComponent = ICONS[a.type] || CircleIcon;
+                const IconComponent = ICONS[a.type] || RecordIcon;
                 return (
                   <motion.div
                     key={a.id}

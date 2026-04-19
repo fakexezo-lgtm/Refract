@@ -40,8 +40,8 @@ export default function Onboarding() {
     <div className="min-h-screen bg-whisper flex items-center justify-center px-5 py-10">
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-2 mb-10">
-          <div className="w-8 h-8 rounded-lg bg-charcoal flex items-center justify-center">
-            <span className="font-serif text-cream leading-none">R</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
           </div>
           <span className="font-serif text-xl">Refract</span>
         </div>

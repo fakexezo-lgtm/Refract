@@ -1,9 +1,9 @@
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/react";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 
@@ -11,32 +11,34 @@ const WORK_TYPES = ["Design studio", "Freelance developer", "Consultant", "Agenc
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, isLoaded } = useUser();
+  const { user, isAuthenticated, updateUserMetadata } = useAuth();
   const [step, setStep] = useState(0);
   const [workType, setWorkType] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && user?.unsafeMetadata?.onboarded) {
+    if (isAuthenticated && user?.onboarded) {
       navigate("/app", { replace: true });
     }
-  }, [user, isLoaded, navigate]);
+  }, [user, isAuthenticated, navigate]);
 
   const finish = async () => {
     if (!user) return;
     setBusy(true);
     
     try {
-      await user.update({
-        unsafeMetadata: {
-          work_type: workType,
-          onboarded: true
-        }
+      // Update Supabase metadata
+      const result = await updateUserMetadata({ 
+        onboarded: true, 
+        work_type: workType 
       });
-
-      // Reload the user data from Clerk to reflect immediate changes
-      await user.reload();
-      navigate("/app");
+      
+      if (result.success) {
+        // Force refresh by reloading or just navigating
+        window.location.href = "/app";
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error('Error completing onboarding:', error);
       setBusy(false);

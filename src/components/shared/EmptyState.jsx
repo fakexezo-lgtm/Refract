@@ -1,9 +1,10 @@
+// @ts-nocheck
 import React from "react";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
 
-export default function EmptyState({ icon: Icon, title, description, actionLabel, onAction, compact }) {
+export default function EmptyState({ icon: Icon, title, description, actionLabel = null, onAction = null, compact = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

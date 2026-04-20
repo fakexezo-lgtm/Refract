@@ -26,6 +26,8 @@ const LABELS = {
 };
 
 export default function Timeline({ activities = [], onAddNote }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
   if (activities.length === 0) {
     return (
       <div className="rounded-2xl bg-cream border border-hair">
@@ -40,9 +42,6 @@ export default function Timeline({ activities = [], onAddNote }) {
       </div>
     );
   }
-
-  // Group by time period
-  const [isExpanded, setIsExpanded] = React.useState(false);
 
   const processActivities = (list) => {
     const result = [];
@@ -77,7 +76,7 @@ export default function Timeline({ activities = [], onAddNote }) {
 
   const groups = {};
   visibleActivities.forEach(a => {
-    const g = timelineGroup(a.created_date);
+    const g = timelineGroup(a.created_at);
     if (!groups[g]) groups[g] = [];
     groups[g].push(a);
   });
@@ -129,7 +128,7 @@ export default function Timeline({ activities = [], onAddNote }) {
                             {a.content}
                           </div>
                         </div>
-                        <div className="text-[10px] font-bold text-soft/40 shrink-0 tabular-nums">{timeAgo(a.created_date)}</div>
+                        <div className="text-[10px] font-bold text-soft/40 shrink-0 tabular-nums">{timeAgo(a.created_at)}</div>
                       </div>
                     </motion.div>
                   );

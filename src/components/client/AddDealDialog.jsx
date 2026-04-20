@@ -3,10 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
+import { apiRoutes } from "@/lib/apiRoutes";
 import { useQueryClient } from "@tanstack/react-query";
 import { STAGES } from "@/lib/constants";
 import { logActivity } from "@/lib/activity";
+import { toast } from "sonner";
 
 export default function AddDealDialog({ open, onOpenChange, client }) {
   const qc = useQueryClient();
@@ -21,15 +22,24 @@ export default function AddDealDialog({ open, onOpenChange, client }) {
     e.preventDefault();
     if (!title.trim()) return;
     setBusy(true);
-    await base44.entities.Deal.create({
-      client_id: client.id, title: title.trim(), stage, value: value ? Number(value) : undefined
-    });
-    await logActivity({ client_id: client.id, type: "deal_created", content: `Deal added: ${title.trim()}` });
-    qc.invalidateQueries({ queryKey: ["deals"] });
-    qc.invalidateQueries({ queryKey: ["activities"] });
-    qc.invalidateQueries({ queryKey: ["client", client.id] });
-    setBusy(false);
-    onOpenChange(false);
+    try {
+      await apiRoutes.createDeal({
+        client_id: client.id,
+        title: title.trim(),
+        stage,
+        value: value ? Number(value) : undefined
+      });
+      await logActivity({ client_id: client.id, type: "deal_created", content: `Deal added: ${title.trim()}` });
+      qc.invalidateQueries({ queryKey: ["deals"] });
+      qc.invalidateQueries({ queryKey: ["activities"] });
+      qc.invalidateQueries({ queryKey: ["client", client.id] });
+      toast.success("Deal saved");
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(error?.message || "Unable to save deal. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

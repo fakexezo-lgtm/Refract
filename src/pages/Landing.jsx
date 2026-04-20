@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, Clock01Icon, UserIcon, SparklesIcon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { useNavigate, Link } from "react-router-dom";
-import { Show, SignInButton, SignUpButton } from "@clerk/react";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Landing() {
   const navigate = useNavigate();
+
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-whisper text-ink">
@@ -19,19 +21,16 @@ export default function Landing() {
           <span className="font-serif text-xl">Refract</span>
         </div>
         <nav className="flex items-center gap-1 md:gap-2">
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button className="px-4 py-2 text-sm text-soft hover:text-ink transition">Log in</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-4 py-2 rounded-full text-sm bg-charcoal text-white hover:bg-black transition">Sign up</button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
+          {!isAuthenticated ? (
+            <>
+              <Link to="/login" className="px-4 py-2 text-sm text-soft hover:text-ink transition">Log in</Link>
+              <Link to="/signup" className="px-4 py-2 rounded-full text-sm bg-charcoal text-white hover:bg-black transition">Sign up</Link>
+            </>
+          ) : (
             <Link to="/app" className="px-5 py-2 rounded-full text-sm bg-charcoal text-white hover:bg-black transition">
               Go to Dashboard
             </Link>
-          </Show>
+          )}
         </nav>
       </header>
 
@@ -53,27 +52,25 @@ export default function Landing() {
             Every note, task, and deal lives on a single timeline — so you always know who, what, and what's next.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Show when="signed-out">
-              <SignUpButton mode="modal">
-                <button className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-charcoal text-white hover:bg-black transition group">
+            {!isAuthenticated ? (
+              <>
+                <Link to="/signup" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-charcoal text-white hover:bg-black transition group">
                   Get started
                   <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </SignUpButton>
-              <SignInButton mode="modal">
-                <button className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-hair text-ink hover:bg-cream transition">
+                </Link>
+                <Link to="/login" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-hair text-ink hover:bg-cream transition">
                   Log in
-                </button>
-              </SignInButton>
-            </Show>
-            <Show when="signed-in">
+                </Link>
+              </>
+            ) : (
               <Link to="/app" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-charcoal text-white hover:bg-black transition group">
                 Continue to Dashboard
                 <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-            </Show>
+            )}
           </div>
         </motion.div>
+
 
         {/* Visual */}
         <motion.div
@@ -158,18 +155,15 @@ export default function Landing() {
           <div className="relative max-w-xl">
             <h3 className="font-serif text-3xl md:text-5xl mb-4">Start remembering everything.</h3>
             <p className="text-white/70 mb-8">Bring your clients into a single calm workspace. Free to try.</p>
-            <Show when="signed-out">
-              <SignUpButton mode="modal">
-                <button className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-cream text-ink hover:bg-white transition">
-                  Get started <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
+            {!isAuthenticated ? (
+              <Link to="/signup" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-cream text-ink hover:bg-white transition">
+                Get started <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
+              </Link>
+            ) : (
               <Link to="/app" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-cream text-ink hover:bg-white transition">
                 Continue to Dashboard <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
               </Link>
-            </Show>
+            )}
           </div>
         </div>
         <div className="mt-10 text-xs text-soft flex justify-between">

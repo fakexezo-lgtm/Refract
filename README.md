@@ -23,7 +23,56 @@ Refract is a modern, intelligence-driven CRM designed to transform static client
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) / React Context
 - **Navigation**: [React Router v6](https://reactrouter.com/)
 - **Forms & Validation**: [Zod](https://zod.dev/) & [React Hook Form](https://react-hook-form.com/)
+- **Authentication + Backend & Database**: [Supabase](https://supabase.com/)
 
+## 🔐 Authentication & User Flow
+
+Refract follows a **state-driven authentication flow** to ensure clarity and a smooth user experience.
+
+### Core Flow
+
+```text
+New User:
+Sign Up → Email Verification → Onboarding → Dashboard
+
+Existing User:
+Login → Dashboard
+Routing Logic
+
+After login or session restore:
+
+IF not authenticated → Login
+
+IF authenticated:
+    IF not verified → Verification screen
+
+    ELSE IF onboarding not completed:
+        → Onboarding
+
+    ELSE:
+        → Dashboard
+
+
+
+Key Rules
+Onboarding is shown only once (for new users)
+Existing users are always redirected directly to the Dashboard
+Users must verify email before accessing the app
+Session persists for returning users (auto-login)
+Protected routes are only accessible to authenticated users
+Edge Cases Handled
+Unverified users cannot access the dashboard
+Incomplete onboarding redirects back to onboarding
+Session expiration redirects to login
+Invalid login credentials show clear error messages
+Expired verification links allow resend
+🗄 Backend (Supabase)
+
+Supabase is used for:
+
+Client, Task, Deal, and Activity data
+Persistent user-related states (e.g., onboarding status)
+API and data layer
 ## 🛠️ Getting Started
 
 ### Prerequisites
@@ -45,10 +94,10 @@ Refract is a modern, intelligence-driven CRM designed to transform static client
    ```
 
 3. **Set up Environment Variables:**
-   Create a `.env.local` file in the root directory and add your configuration (e.g., API endpoints, Auth keys):
+   Create a `.env` file in the root directory and add your Supabase configuration:
    ```env
-   VITE_API_URL=your_api_url
-   VITE_AUTH_KEY=your_auth_key
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
 4. **Launch the development server:**

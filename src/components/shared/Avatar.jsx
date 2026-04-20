@@ -2,7 +2,7 @@ import React from "react";
 import { initialsOf, pickAvatarColor } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-export default function Avatar({ name = "", color, size = "md", className }) {
+export default function Avatar({ name = "", color, size = "md", className = "" }) {
   const bg = color || pickAvatarColor(name);
   const sizes = {
     xs: "w-6 h-6 text-[10px]",

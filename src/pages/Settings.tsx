@@ -15,6 +15,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 import {
   Dialog,
@@ -32,7 +33,7 @@ const CATEGORIES = [
 ];
 
 export default function Settings() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUserMetadata } = useAuth();
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState("profile");
@@ -48,36 +49,25 @@ export default function Settings() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Save profile to Supabase
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: settings.full_name })
-      });
-      
-      if (!response.ok) throw new Error('Failed to save');
-      
+      const result = await updateUserMetadata({ full_name: settings.full_name });
+      if (!result.success) throw new Error(result.error);
       alert('Changes saved successfully');
     } catch (e) {
-      alert('Failed to save changes. Please try again.');
+      alert('Failed to save changes: ' + e.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = async () => {
-    await logout();
+    await logout(false);
     navigate('/login');
   };
 
   const handleDeleteAccount = async () => {
     try {
-      // Delete user data from Supabase
-      await fetch('/api/account/delete', {
-        method: 'DELETE'
-      });
-      
-      await logout();
+      await apiRoutes.deleteAccount();
+      await logout(false);
       navigate('/login');
     } catch (e) {
       alert('Failed to delete account. Please try again.');
@@ -87,19 +77,12 @@ export default function Settings() {
 
   const handleExportData = async () => {
     try {
-      // Export data as CSV
-      const response = await fetch('/api/export', {
-        method: 'POST'
-      });
+      const data = await apiRoutes.exportData();
       
-      const data = await response.json();
+      const clientsCSV = convertToCSV(data.clients || [], ['name', 'email', 'company', 'status', 'created_at']);
+      const tasksCSV = convertToCSV(data.tasks || [], ['title', 'completed', 'due_date', 'client_id', 'created_at']);
+      const dealsCSV = convertToCSV(data.deals || [], ['title', 'value', 'stage', 'client_id', 'created_at']);
       
-      // Convert to CSV
-      const clientsCSV = convertToCSV(data.clients || [], ['name', 'email', 'company', 'status', 'created_date']);
-      const tasksCSV = convertToCSV(data.tasks || [], ['title', 'completed', 'due_date', 'client_id', 'created_date']);
-      const dealsCSV = convertToCSV(data.deals || [], ['title', 'value', 'stage', 'client_id', 'created_date']);
-      
-      // Download files
       downloadCSV(clientsCSV, 'clients.csv');
       downloadCSV(tasksCSV, 'tasks.csv');
       downloadCSV(dealsCSV, 'deals.csv');

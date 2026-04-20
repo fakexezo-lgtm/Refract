@@ -39,10 +39,10 @@ export default function ActivityFeed({ activities = [], clients = [], limit = 8 
             <div className="flex-1 min-w-0">
               <div className="text-sm text-ink truncate">{a.content}</div>
               <div className="text-xs text-soft mt-0.5 flex items-center gap-1.5">
-                {client && <Avatar name={client.name} color={client.avatar_color} size="xs" />}
+                {client && <Avatar name={client.name} color={client.avatar_color} size="xs" className="" />}
                 {client && <span>{client.name}</span>}
                 <span>·</span>
-                <span>{timeAgo(a.created_date)}</span>
+                <span>{timeAgo(a.created_at)}</span>
               </div>
             </div>
           </motion.button>

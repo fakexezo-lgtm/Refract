@@ -1,12 +1,13 @@
-// @ts-nocheck
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from '@/App.tsx'
+import App from '@/App'
 import '@/index.css'
-import { ClerkProvider } from "@clerk/react"
+import { AuthProvider } from "@/lib/AuthContext"
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <ClerkProvider afterSignOutUrl="/">
-    <App />
-  </ClerkProvider>
+  <React.StrictMode>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </React.StrictMode>
 )

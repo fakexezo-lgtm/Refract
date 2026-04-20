@@ -6,12 +6,20 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffIcon, Mail01Icon, LockPasswordIcon, ArrowRight01Icon, UserIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { validateEmail } from "@/lib/authErrorMap";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register } = useAuth();
+  const { login, register, signInWithGoogle, authChecked } = useAuth();
   const { toast } = useToast();
+
+  const handleGoogleLogin = async () => {
+    const result = await signInWithGoogle();
+    if (!result.success) {
+      setInternalError(result.error);
+    }
+  };
   
   const [mode, setMode] = useState("login"); // 'login' or 'signup'
   const [name, setName] = useState("");
@@ -21,20 +29,49 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [internalError, setInternalError] = useState("");
 
-  // Handle mode from query params if any
+  // Handle mode from query params or pathname
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const m = params.get("mode");
-    if (m === "signup") setMode("signup");
+    if (m === "signup" || location.pathname === "/signup") setMode("signup");
     else setMode("login");
   }, [location]);
+
+  if (!authChecked) {
+    return (
+      <AuthLayout 
+        title={mode === "login" ? "Welcome back" : "Create account"} 
+        subtitle="Initializing secure connection..."
+      >
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-charcoal/10 border-t-charcoal rounded-full animate-spin" />
+        </div>
+      </AuthLayout>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setInternalError("");
     
-    if (!email || !password || (mode === "signup" && !name)) {
-      setInternalError("Please fill in all fields.");
+    if (mode === "signup" && !name.trim()) {
+      setInternalError("Name is required");
+      return;
+    }
+    if (!email.trim()) {
+      setInternalError("Email is required");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setInternalError("Enter a valid email address");
+      return;
+    }
+    if (!password) {
+      setInternalError("Password is required");
+      return;
+    }
+    if (mode === "signup" && password.length < 8) {
+      setInternalError("Password must be at least 8 characters");
       return;
     }
 
@@ -54,18 +91,14 @@ export default function Login() {
         navigate("/verify-email", { state: { email } });
       }
     } else {
-      if (result.error?.includes("Email not confirmed")) {
+      if (result.code === "EMAIL_NOT_VERIFIED" || result.nextAction === "resend_verification") {
         navigate("/verify-email", { state: { email } });
         toast({
           title: "Please verify your email",
-          description: "We've requested a verification for this account. Check your inbox.",
+          description: "Please verify your email before logging in.",
         });
       } else {
-        toast({
-          title: mode === "login" ? "Login Failed" : "Registration Failed",
-          description: result.error || "Please check your details and try again.",
-          variant: "destructive"
-        });
+        setInternalError(result.error || (mode === "login" ? "Invalid email or password" : "Unable to create account. Try again"));
       }
     }
   };
@@ -219,13 +252,14 @@ export default function Login() {
 
         <button 
           type="button" 
+          onClick={handleGoogleLogin}
           className="w-full flex items-center justify-center gap-3 h-11 rounded-xl border border-hair bg-white hover:bg-cream transition-all text-xs font-bold uppercase tracking-wider"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
           Google
         </button>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const { resetPassword } = useAuth();
+  const { resetPassword, getRecoveryState } = useAuth();
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,13 +16,46 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [linkState, setLinkState] = useState("checking");
+
+  React.useEffect(() => {
+    let mounted = true;
+    const checkRecoveryState = async () => {
+      const result = await getRecoveryState();
+      if (!mounted) return;
+      if (result.valid) {
+        setLinkState("valid");
+        return;
+      }
+      if (result.reason === "EXPIRED_LINK") {
+        setError("This reset link has expired");
+      } else {
+        setError("Invalid reset link");
+      }
+      setLinkState("invalid");
+    };
+    checkRecoveryState();
+    return () => {
+      mounted = false;
+    };
+  }, [getRecoveryState]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!password) {
+      setError("Password is required");
+      return;
+    }
+
+    if (!confirmPassword) {
+      setError("Confirm password is required");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
 
@@ -49,8 +82,13 @@ export default function ResetPassword() {
         : "Choose a secure password for your Refract account."
       }
     >
+      {linkState === "checking" && (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-charcoal/10 border-t-charcoal rounded-full animate-spin" />
+        </div>
+      )}
       <AnimatePresence mode="wait">
-        {!success ? (
+        {!success && linkState === "valid" ? (
           <motion.form 
             key="form"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -71,7 +109,7 @@ export default function ResetPassword() {
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Min. 6 characters"
+                  placeholder="Min. 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-11 pr-12 h-11 rounded-xl bg-cream/30 border border-hair focus:bg-white focus:outline-none focus:ring-4 focus:ring-charcoal/5 focus:border-charcoal/20 transition-all text-sm"
@@ -116,7 +154,23 @@ export default function ResetPassword() {
               )}
             </button>
           </motion.form>
-        ) : (
+        ) : !success && linkState === "invalid" ? (
+          <motion.div
+            key="invalid"
+            initial={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }}
+            className="text-center py-4"
+          >
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-xs font-medium mb-6">
+              {error || "Invalid reset link"}
+            </div>
+            <button
+              onClick={() => navigate("/forgot-password")}
+              className="w-full h-11 rounded-xl bg-charcoal text-white font-medium hover:bg-black transition-all flex items-center justify-center"
+            >
+              Request a new reset link
+            </button>
+          </motion.div>
+        ) : success ? (
           <motion.div 
             key="success"
             initial={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }}
@@ -133,7 +187,7 @@ export default function ResetPassword() {
               <HugeiconsIcon icon={ArrowRight01Icon} size={18} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </AuthLayout>
   );

@@ -1,9 +1,18 @@
+// @ts-nocheck
 import React, { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon } from "@hugeicons/core-free-icons";
+import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon, Logout01Icon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserButton } from "@clerk/react";
+import { useAuth } from "@/lib/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import CommandPalette from "@/components/command/CommandPalette";
 import QuickAddClientDialog from "@/components/clients/QuickAddClientDialog";
 import { useHotkeys } from "@/hooks/useHotkeys";
@@ -13,10 +22,9 @@ const NAV = [
   { to: "/app/clients", label: "Clients", icon: UserIcon },
   { to: "/app/pipeline", label: "Pipeline", icon: FolderKanbanIcon },
   { to: "/app/tasks", label: "Tasks", icon: CheckmarkSquareIcon },
-  { to: "/app/settings", label: "Settings", icon: SettingsIcon },
 ];
 
-function SidebarContent({ onCommand, onAdd, onNavigate }) {
+function SidebarContent({ onCommand, onAdd, onNavigate, user, logout }) {
   return (
     <div className="h-full flex flex-col bg-charcoal text-white px-5 py-6">
       <div className="flex items-center gap-2 px-2 mb-8">
@@ -28,11 +36,11 @@ function SidebarContent({ onCommand, onAdd, onNavigate }) {
 
       <button
         onClick={onCommand}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 text-sm mb-2 transition"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 text-sm mb-2 transition w-full overflow-hidden"
       >
-        <HugeiconsIcon icon={SearchIcon} className="w-4 h-4" />
-        <span className="flex-1 text-left">Search or jump to…</span>
-        <kbd className="hidden md:inline text-[10px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10">⌘K</kbd>
+        <HugeiconsIcon icon={SearchIcon} className="w-4 h-4 shrink-0" />
+        <span className="flex-1 text-left truncate whitespace-nowrap">Search or jump to…</span>
+        <kbd className="hidden md:inline text-[10px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 shrink-0">⌘K</kbd>
       </button>
 
       <button
@@ -68,8 +76,51 @@ function SidebarContent({ onCommand, onAdd, onNavigate }) {
         ))}
       </nav>
 
-      <div className="pt-4 mt-4 border-t border-white/10 flex items-center px-2">
-        <UserButton showName appearance={{ elements: { userButtonBox: "flex-row-reverse w-full justify-between", userButtonOuterIdentifier: "text-white text-sm truncate" } }} />
+      <div className="pt-4 mt-4 border-t border-white/10 px-2 lg:relative">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button 
+              className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-white/5 transition text-left focus:outline-none"
+            >
+              <div className="w-8 h-8 rounded-full bg-cream/10 flex items-center justify-center text-[10px] font-bold text-cream border border-cream/20 shrink-0">
+                {user?.email?.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-white truncate">{user?.full_name || user?.email?.split('@')[0]}</div>
+                <div className="text-[10px] text-white/40 truncate">{user?.email}</div>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="end" className="w-56 mb-4 lg:mb-0 lg:ml-2 bg-charcoal border-white/10 text-white">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.full_name || "User"}</p>
+                <p className="text-xs leading-none text-white/40">{user?.email}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem className="focus:bg-white/10 focus:text-white cursor-pointer" onClick={() => onNavigate && onNavigate()}>
+              <NavLink to="/app/settings" className="flex items-center gap-2 w-full">
+                <HugeiconsIcon icon={UserIcon} className="w-4 h-4" />
+                <span>Profile</span>
+              </NavLink>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="focus:bg-white/10 focus:text-white cursor-pointer" onClick={() => onNavigate && onNavigate()}>
+              <NavLink to="/app/settings" className="flex items-center gap-2 w-full">
+                <HugeiconsIcon icon={SettingsIcon} className="w-4 h-4" />
+                <span>Settings</span>
+              </NavLink>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem 
+              className="focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400"
+              onClick={() => logout()}
+            >
+              <HugeiconsIcon icon={Logout01Icon} className="w-4 h-4" />
+              <span>Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
@@ -79,6 +130,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   useHotkeys("mod+k", (e) => { e.preventDefault(); setCmdOpen(true); });
@@ -89,7 +141,7 @@ export default function Layout() {
     <div className="min-h-screen bg-whisper">
       {/* Desktop sidebar */}
       <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 z-30">
-        <SidebarContent onCommand={() => setCmdOpen(true)} onAdd={() => setAddOpen(true)} />
+        <SidebarContent onCommand={() => setCmdOpen(true)} onAdd={() => setAddOpen(true)} user={user} logout={logout} />
       </aside>
 
       {/* Mobile top bar */}
@@ -132,6 +184,8 @@ export default function Layout() {
                   onCommand={() => { setMobileOpen(false); setCmdOpen(true); }}
                   onAdd={() => { setMobileOpen(false); setAddOpen(true); }}
                   onNavigate={() => setMobileOpen(false)}
+                  user={user}
+                  logout={logout}
                 />
               </div>
             </motion.aside>

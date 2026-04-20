@@ -1,8 +1,8 @@
-import { base44 } from "@/api/base44Client";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 export async function logActivity({ client_id, type, content, metadata }) {
   if (!client_id) return;
-  await base44.entities.Activity.create({ client_id, type, content, metadata });
+  await apiRoutes.createActivity({ client_id, type, content, metadata });
   // Update client's last_contacted_at
-  await base44.entities.Client.update(client_id, { last_contacted_at: new Date().toISOString() });
+  await apiRoutes.updateClient(client_id, { last_contacted_at: new Date().toISOString() });
 }

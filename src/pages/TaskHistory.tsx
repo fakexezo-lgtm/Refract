@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { apiRoutes } from "@/lib/apiRoutes";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, CheckmarkCircle03Icon, Calendar03Icon, Clock01Icon } from "@hugeicons/core-free-icons";
@@ -40,8 +40,8 @@ function HistoryGroup({ title, tasks, clientMap }) {
 
 export default function TaskHistory() {
   const navigate = useNavigate();
-  const { data: tasks = [] } = useQuery({ queryKey: ["tasks"], queryFn: () => base44.entities.Task.list("-updated_date", 500) });
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list("-updated_date", 500) });
+  const { data: tasks = [] } = useQuery({ queryKey: ["tasks"], queryFn: apiRoutes.getTasks });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: apiRoutes.getClients });
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [c.id, c])), [clients]);
 
   const groups = useMemo(() => {

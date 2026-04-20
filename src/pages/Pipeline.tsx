@@ -1,6 +1,6 @@
 import React, { useMemo, useState, memo, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { apiRoutes } from "@/lib/apiRoutes";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { STAGES } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
@@ -25,41 +25,67 @@ import {
   Tick01Icon,
   Delete02Icon
 } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button as BaseButton } from "@/components/ui/button";
+import { Input as BaseInput } from "@/components/ui/input";
 import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
+  Sheet as BaseSheet, 
+  SheetContent as BaseSheetContent, 
+  SheetHeader as BaseSheetHeader, 
+  SheetTitle as BaseSheetTitle, 
+  SheetDescription as BaseSheetDescription 
 } from "@/components/ui/sheet";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
+  Dialog as BaseDialog,
+  DialogContent as BaseDialogContent,
+  DialogHeader as BaseDialogHeader,
+  DialogTitle as BaseDialogTitle,
+  DialogDescription as BaseDialogDescription,
+  DialogFooter as BaseDialogFooter
 } from "@/components/ui/dialog";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+  Popover as BasePopover,
+  PopoverContent as BasePopoverContent,
+  PopoverTrigger as BasePopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select as BaseSelect,
+  SelectContent as BaseSelectContent,
+  SelectItem as BaseSelectItem,
+  SelectTrigger as BaseSelectTrigger,
+  SelectValue as BaseSelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu as BaseDropdownMenu,
+  DropdownMenuContent as BaseDropdownMenuContent,
+  DropdownMenuItem as BaseDropdownMenuItem,
+  DropdownMenuTrigger as BaseDropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const Button = BaseButton as any;
+const Input = BaseInput as any;
+const Sheet = BaseSheet as any;
+const SheetContent = BaseSheetContent as any;
+const SheetHeader = BaseSheetHeader as any;
+const SheetTitle = BaseSheetTitle as any;
+const SheetDescription = BaseSheetDescription as any;
+const Dialog = BaseDialog as any;
+const DialogContent = BaseDialogContent as any;
+const DialogHeader = BaseDialogHeader as any;
+const DialogTitle = BaseDialogTitle as any;
+const DialogDescription = BaseDialogDescription as any;
+const DialogFooter = BaseDialogFooter as any;
+const Popover = BasePopover as any;
+const PopoverContent = BasePopoverContent as any;
+const PopoverTrigger = BasePopoverTrigger as any;
+const Select = BaseSelect as any;
+const SelectContent = BaseSelectContent as any;
+const SelectItem = BaseSelectItem as any;
+const SelectTrigger = BaseSelectTrigger as any;
+const SelectValue = BaseSelectValue as any;
+const DropdownMenu = BaseDropdownMenu as any;
+const DropdownMenuContent = BaseDropdownMenuContent as any;
+const DropdownMenuItem = BaseDropdownMenuItem as any;
+const DropdownMenuTrigger = BaseDropdownMenuTrigger as any;
 import AddDealDialog from "@/components/pipeline/AddDealDialog";
 import { differenceInDays, parseISO } from "date-fns";
 
@@ -70,7 +96,7 @@ function fireConfetti(origin = { y: 0.4 }) {
 }
 
 // Memoized Card for stable drag animation
-const DealCard = memo(({ deal, client, onClick, isDragging }) => {
+const DealCard = memo(({ deal, client, onClick, isDragging }: { deal: any; client: any; onClick: () => void; isDragging: boolean }) => {
   const daysSinceUpdate = deal.updated_date ? differenceInDays(new Date(), parseISO(deal.updated_date)) : 0;
   const isStale = daysSinceUpdate >= 5;
 
@@ -85,7 +111,7 @@ const DealCard = memo(({ deal, client, onClick, isDragging }) => {
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 truncate">
-          {client && <Avatar name={client.name} size="xs" color={client.avatar_color} />}
+          {client && <Avatar name={client.name} size="xs" color={client.avatar_color} className="" />}
           <span className="text-[11px] text-soft truncate font-medium">{client?.name || "No Client"}</span>
         </div>
         <div className={cn(
@@ -118,6 +144,8 @@ export default function Pipeline() {
   
   // Controlled field for next step suggestions
   const [nextStepVal, setNextStepVal] = useState("");
+  const [dealValueVal, setDealValueVal] = useState("0");
+  const [detailsSaving, setDetailsSaving] = useState(false);
 
   // Filter state
   const [filters, setFilters] = useState({ minPrice: '', maxPrice: '' });
@@ -128,13 +156,15 @@ export default function Pipeline() {
   const [lossModalOpen, setLossModalOpen] = useState(false);
   const [pendingLossId, setPendingLossId] = useState(null);
 
-  const { data: deals = [] } = useQuery({ 
+  const { data: deals = [], isLoading: dealsLoading } = useQuery({ 
     queryKey: ["deals"], 
-    queryFn: () => base44.entities.Deal.list("-updated_date", 500) 
+    queryFn: apiRoutes.getDeals 
   });
-  const { data: clients = [] } = useQuery({ 
+  
+  console.log("Pipeline - deals:", deals, "loading:", dealsLoading);
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({
     queryKey: ["clients"], 
-    queryFn: () => base44.entities.Client.list("-updated_date", 500) 
+    queryFn: apiRoutes.getClients 
   });
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [c.id, c])), [clients]);
 
@@ -142,6 +172,12 @@ export default function Pipeline() {
 
   useEffect(() => {
     if (selectedDeal) setNextStepVal(selectedDeal.next_step || "");
+  }, [selectedDeal]);
+  
+  useEffect(() => {
+    if (selectedDeal) {
+      setDealValueVal(String(selectedDeal.value ?? 0));
+    }
   }, [selectedDeal]);
 
   // Metrics (Always calculated from all deals)
@@ -175,11 +211,15 @@ export default function Pipeline() {
   }, [filteredDeals]);
 
   const handleLoss = async (id, reason) => {
-    await base44.entities.Deal.update(id, { stage: "lost", loss_reason: reason, updated_date: new Date().toISOString() });
-    qc.invalidateQueries({ queryKey: ["deals"] });
-    toast.info("Deal marked as lost");
-    setLossModalOpen(false);
-    setPendingLossId(null);
+    try {
+      await apiRoutes.updateDeal(id, { stage: "lost", loss_reason: reason });
+      qc.invalidateQueries({ queryKey: ["deals"] });
+      toast.info("Deal marked as lost");
+      setLossModalOpen(false);
+      setPendingLossId(null);
+    } catch (error) {
+      toast.error(error?.message || "Failed to mark deal as lost.");
+    }
   };
 
   const onDragEnd = async (res) => {
@@ -198,21 +238,25 @@ export default function Pipeline() {
     }
 
     const now = new Date().toISOString();
-    qc.setQueryData(["deals"], (old = []) => old.map(d => d.id === deal.id ? { ...d, stage: newStage, updated_date: now } : d));
-    await base44.entities.Deal.update(deal.id, { stage: newStage, updated_date: now });
-    
-    if (newStage === "won") {
-      fireConfetti({ y: 0.3 });
-      toast.success(`Deal "${deal.title}" won! 🎉`);
+    const previousDeals = qc.getQueryData(["deals"]);
+    qc.setQueryData(["deals"], (old: any = []) => old.map((d: any) => d.id === deal.id ? { ...d, stage: newStage, updated_date: now } : d));
+    try {
+      await apiRoutes.updateDeal(deal.id, { stage: newStage });
+      if (newStage === "won") {
+        fireConfetti({ y: 0.3 });
+        toast.success(`Deal "${deal.title}" won! 🎉`);
+      }
+      qc.invalidateQueries({ queryKey: ["deals"] });
+      await logActivity({
+        client_id: deal.client_id,
+        type: "deal_stage_changed",
+        content: `Moved deal "${deal.title}" to ${newStage}`,
+        metadata: { from: oldStage, to: newStage, deal_id: deal.id }
+      });
+    } catch (error) {
+      qc.setQueryData(["deals"], previousDeals || []);
+      toast.error(error?.message || "Unable to update deal stage.");
     }
-
-    qc.invalidateQueries({ queryKey: ["deals"] });
-    await logActivity({
-      client_id: deal.client_id, 
-      type: "deal_stage_changed",
-      content: `Moved deal "${deal.title}" to ${newStage}`,
-      metadata: { from: oldStage, to: newStage, deal_id: deal.id }
-    });
   };
 
   const openAdd = (stage = "lead") => {
@@ -221,8 +265,36 @@ export default function Pipeline() {
   };
 
   const updateDeal = async (id, data) => {
-    await base44.entities.Deal.update(id, { ...data, updated_date: new Date().toISOString() });
-    qc.invalidateQueries({ queryKey: ["deals"] });
+    try {
+      await apiRoutes.updateDeal(id, data);
+      qc.invalidateQueries({ queryKey: ["deals"] });
+      return true;
+    } catch (error) {
+      toast.error(error?.message || "Unable to update deal.");
+      return false;
+    }
+  };
+
+  const hasPendingDetailChanges = selectedDeal
+    ? Number.parseFloat(dealValueVal || "0") !== Number(selectedDeal.value || 0) ||
+      (nextStepVal || "") !== (selectedDeal.next_step || "")
+    : false;
+
+  const saveDealDetails = async () => {
+    if (!selectedDeal || !hasPendingDetailChanges) return;
+    setDetailsSaving(true);
+    try {
+      await apiRoutes.updateDeal(selectedDeal.id, {
+        value: Number.parseFloat(dealValueVal || "0") || 0,
+        next_step: nextStepVal?.trim() || null
+      });
+      qc.invalidateQueries({ queryKey: ["deals"] });
+      toast.success("Deal details saved");
+    } catch (error) {
+      toast.error(error?.message || "Failed to save deal details.");
+    } finally {
+      setDetailsSaving(false);
+    }
   };
 
   return (
@@ -236,6 +308,7 @@ export default function Pipeline() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <HugeiconsIcon icon={SearchIcon} className="absolute left-3 top-1/2 -translate-y-1/2 text-soft w-4 h-4" />
+
             <Input 
               placeholder="Find deal..." 
               className="pl-9 w-64 bg-white border-hair rounded-xl h-11"
@@ -246,6 +319,7 @@ export default function Pipeline() {
           
           <Popover>
             <PopoverTrigger asChild>
+    
                 <Button variant="outline" className={cn("border-hair bg-white h-11 px-4 rounded-xl gap-2", activeFilterCount > 0 && "border-charcoal bg-charcoal/5")}>
                     <HugeiconsIcon icon={FilterIcon} className="w-4 h-4" />
                     <span className="text-xs font-bold">Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}</span>
@@ -289,6 +363,7 @@ export default function Pipeline() {
             </PopoverContent>
           </Popover>
 
+          {/* @ts-ignore */}
           <Button onClick={() => openAdd()} className="bg-charcoal text-white hover:bg-black gap-2 h-11 px-6 rounded-xl font-bold">
             <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" /> Add Deal
           </Button>
@@ -301,17 +376,22 @@ export default function Pipeline() {
             label="Pipeline Value" 
             value={formatCurrency(metrics.totalValue)} 
             icon={<HugeiconsIcon icon={FolderKanbanIcon} className="text-charcoal" />} 
+            primary={false}
+            context={null}
         />
         <KPIItem 
             label="Average Size" 
             value={formatCurrency(metrics.avgSize)} 
             icon={<HugeiconsIcon icon={DashboardSquareIcon} className="text-charcoal" />} 
+            primary={false}
+            context={null}
         />
         <KPIItem 
             label="Win Rate" 
             value={`${metrics.convRate.toFixed(1)}%`} 
             context={`${metrics.wonCount} won`}
             icon={<HugeiconsIcon icon={Tick01Icon} className="text-charcoal" />} 
+            primary={false}
         />
       </div>      {/* 3. Board */}
       <div className="flex-1 min-h-0 overflow-x-auto pb-6 scrollbar-hide relative group">
@@ -361,6 +441,7 @@ export default function Pipeline() {
                             <div className="flex flex-col items-center justify-center py-24 text-center">
                                  <p className="text-[10px] font-bold text-soft/30 uppercase tracking-[0.2em]">No deals yet</p>
                                  <p className="text-[10px] text-soft/40 mt-1 mb-4">Start by adding your first deal</p>
+                     
                                  <Button 
                                     variant="outline" 
                                     size="sm" 
@@ -398,7 +479,7 @@ export default function Pipeline() {
                             <DropdownMenuItem 
                                 onClick={async () => {
                                     if (confirm("Delete this deal?")) {
-                                        await base44.entities.Deal.delete(selectedDeal.id);
+                                        await apiRoutes.deleteDeal(selectedDeal.id);
                                         qc.invalidateQueries({ queryKey: ["deals"] });
                                         setSelectedDealId(null);
                                         toast.info("Deal deleted permanently");
@@ -448,9 +529,8 @@ export default function Pipeline() {
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-soft font-bold">$</span>
                             <Input 
                                 type="number"
-                                defaultValue={selectedDeal?.value || 0}
-                                key={`${selectedDeal?.id}-val`}
-                                onBlur={(e) => updateDeal(selectedDeal.id, { value: parseFloat(e.target.value) || 0 })}
+                                value={dealValueVal}
+                                onChange={(e) => setDealValueVal(e.target.value)}
                                 className="h-12 pl-8 pr-4 bg-whisper/20 border-hair rounded-xl font-serif text-xl"
                             />
                         </div>
@@ -464,7 +544,6 @@ export default function Pipeline() {
                                 placeholder="What needs to happen next?" 
                                 value={nextStepVal} 
                                 onChange={(e) => setNextStepVal(e.target.value)}
-                                onBlur={() => updateDeal(selectedDeal.id, { next_step: nextStepVal })}
                                 className="h-12 bg-white border-hair rounded-xl ring-offset-background focus-visible:ring-2 focus-visible:ring-charcoal"
                             />
                             <div className="flex flex-wrap gap-2">
@@ -473,7 +552,6 @@ export default function Pipeline() {
                                         key={tag}
                                         onClick={() => {
                                             setNextStepVal(tag);
-                                            updateDeal(selectedDeal.id, { next_step: tag });
                                         }}
                                         className="text-[10px] font-extrabold text-soft/80 hover:text-charcoal hover:bg-charcoal/5 border border-hair px-3 py-1.5 rounded-full transition-all"
                                     >
@@ -482,6 +560,16 @@ export default function Pipeline() {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                    <div className="flex justify-end">
+          
+                      <Button
+                        onClick={saveDealDetails}
+                        disabled={!hasPendingDetailChanges || detailsSaving}
+                        className="rounded-xl bg-charcoal text-white hover:bg-black px-6"
+                      >
+                        {detailsSaving ? "Saving..." : "Save Updates"}
+                      </Button>
                     </div>
                 </div>
             </div>
@@ -496,7 +584,7 @@ export default function Pipeline() {
       </Sheet>
 
       {/* 5. Add Deal Dialog */}
-      <AddDealDialog open={isAddOpen} onOpenChange={setIsAddOpen} initialStage={addInitialStage} />
+      <AddDealDialog open={isAddOpen} onOpenChange={setIsAddOpen} initialStage={addInitialStage} clients={clients} clientsLoading={clientsLoading} />
 
       {/* 6. Loss Reason Dialog */}
       <Dialog open={lossModalOpen} onOpenChange={setLossModalOpen}>
@@ -518,6 +606,7 @@ export default function Pipeline() {
                   ))}
               </div>
               <DialogFooter className="mt-4">
+                  {/* @ts-ignore */}
                   <Button variant="ghost" onClick={() => setLossModalOpen(false)} className="w-full rounded-2xl text-soft">Cancel</Button>
               </DialogFooter>
           </DialogContent>
@@ -526,7 +615,7 @@ export default function Pipeline() {
   );
 }
 
-function KPIItem({ label, value, icon, primary, context }) {
+function KPIItem({ label, value, icon, primary = false, context = null }: { label: string; value: string; icon: any; primary?: boolean; context?: string | null }) {
     return (
         <div className={cn(
             "p-6 rounded-[2rem] border",

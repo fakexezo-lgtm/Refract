@@ -1,41 +1,61 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+// @ts-nocheck
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from './supabaseClient';
+import { mapAuthError } from './authErrorMap';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('refract_user');
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('refract_user'));
-  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
-  const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [authChecked, setAuthChecked] = useState(true);
-  const [appPublicSettings, setAppPublicSettings] = useState({ id: 'local', public_settings: {} });
 
+  // Map Supabase user to our app's user format
+  const mapUser = (supabaseUser) => {
+    if (!supabaseUser) return null;
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email,
+      full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email.split('@')[0],
+      onboarded: supabaseUser.user_metadata?.onboarded || false,
+      email_verified: !!supabaseUser.email_confirmed_at
+    };
+  };
+
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(mapUser(session?.user));
+      setIsLoadingAuth(false);
+    });
+
+    // Listen for changes on auth state (sign in, sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      setUser(mapUser(session?.user));
+      setIsLoadingAuth(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (email, password) => {
     setIsLoadingAuth(true);
     setAuthError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser = {
-        id: 'user_' + Math.random().toString(36).substr(2, 9),
-        email: email,
-        full_name: email.split('@')[0],
-        onboarded: true
-      };
-      
-      localStorage.setItem('refract_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      return true;
-    } catch (error) {
-      setAuthError({ message: 'Invalid credentials' });
-      return false;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      const mapped = mapAuthError(err, "login");
+      setAuthError({ message: mapped.message, code: mapped.code });
+      return { success: false, error: mapped.message, code: mapped.code, nextAction: mapped.nextAction };
     } finally {
       setIsLoadingAuth(false);
     }
@@ -45,23 +65,64 @@ export const AuthProvider = ({ children }) => {
     setIsLoadingAuth(true);
     setAuthError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            onboarded: false
+          }
+        }
+      });
+
+      if (error) throw error;
       
-      const mockUser = {
-        id: 'user_' + Math.random().toString(36).substr(2, 9),
-        email: email,
-        full_name: name,
-        onboarded: false
+      // If user is returned but not session, email confirmation is required
+      return { 
+        success: true, 
+        status: data.session ? "complete" : "awaiting_verification" 
       };
-      
-      localStorage.setItem('refract_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      return true;
-    } catch (error) {
-      setAuthError({ message: 'Registration failed' });
-      return false;
+    } catch (err) {
+      const mapped = mapAuthError(err, "signup");
+      setAuthError({ message: mapped.message, code: mapped.code });
+      return { success: false, error: mapped.message, code: mapped.code };
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  };
+
+  const verifyEmail = async (code, email) => {
+    setIsLoadingAuth(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: code,
+        type: 'signup'
+      });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      const mapped = mapAuthError(err, "verify_email");
+      return { success: false, error: mapped.message, code: mapped.code };
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  };
+
+  const resendVerification = async (email) => {
+    setIsLoadingAuth(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      const mapped = mapAuthError(err, "verify_email");
+      return { success: false, error: mapped.message, code: mapped.code };
     } finally {
       setIsLoadingAuth(false);
     }
@@ -70,10 +131,14 @@ export const AuthProvider = ({ children }) => {
   const forgotPassword = async (email) => {
     setIsLoadingAuth(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return true;
-    } catch (e) {
-      return false;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      const mapped = mapAuthError(err, "forgot_password");
+      return { success: false, error: mapped.message, code: mapped.code };
     } finally {
       setIsLoadingAuth(false);
     }
@@ -82,77 +147,95 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (password) => {
     setIsLoadingAuth(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      return true;
-    } catch (e) {
-      return false;
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      const mapped = mapAuthError(err, "reset_password");
+      return { success: false, error: mapped.message, code: mapped.code };
     } finally {
       setIsLoadingAuth(false);
     }
   };
 
-  const verifyEmail = async () => {
-    setIsLoadingAuth(true);
+  const getRecoveryState = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const stored = localStorage.getItem('refract_user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        u.email_verified = true;
-        localStorage.setItem('refract_user', JSON.stringify(u));
-        setUser(u);
-      }
-      return true;
-    } catch (e) {
-      return false;
-    } finally {
-      setIsLoadingAuth(false);
+      const hash = window.location.hash || '';
+      const query = window.location.search || '';
+      const tokenInUrl = hash.includes("type=recovery") || query.includes("type=recovery");
+      const { data: { session } } = await supabase.auth.getSession();
+      const hasRecoverySession = !!session?.user;
+      return {
+        valid: tokenInUrl || hasRecoverySession,
+        reason: tokenInUrl || hasRecoverySession ? null : "INVALID_TOKEN"
+      };
+    } catch (_err) {
+      return { valid: false, reason: "INVALID_TOKEN" };
     }
   };
 
-  const logout = (shouldRedirect = true) => {
-    localStorage.removeItem('refract_user');
-    setUser(null);
-    setIsAuthenticated(false);
-    if (shouldRedirect) window.location.href = '/';
+  const updateUserMetadata = async (metadata) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: metadata
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message || "Update failed" };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/app`
+        }
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message || "Google login failed" };
+    }
+  };
+
+  const logout = async (shouldRedirect = true) => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      if (shouldRedirect) window.location.href = '/';
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: mapAuthError(err, "login").message };
+    }
   };
 
   const navigateToLogin = () => {
-    window.location.href = '/';
+    window.location.href = '/login';
   };
-
-  const checkUserAuth = async () => {
-    const stored = localStorage.getItem('refract_user');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setUser(parsed);
-      setIsAuthenticated(true);
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-  };
-
-  const checkAppState = async () => {};
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      isAuthenticated, 
+      isAuthenticated: !!user, 
       isLoadingAuth,
-      isLoadingPublicSettings,
       authError,
-      appPublicSettings,
-      authChecked,
+      authChecked: !isLoadingAuth,
       login,
       register,
       forgotPassword,
       resetPassword,
       verifyEmail,
+      resendVerification,
+      signInWithGoogle,
+      updateUserMetadata,
       logout,
-      navigateToLogin,
-      checkUserAuth,
-      checkAppState
+      getRecoveryState,
+      navigateToLogin
     }}>
       {children}
     </AuthContext.Provider>

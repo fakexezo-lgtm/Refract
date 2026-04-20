@@ -5,38 +5,40 @@ import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, ArrowRight01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { useToast } from "@/components/ui/use-toast";
+import { validateEmail } from "@/lib/authErrorMap";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { forgotPassword } = useAuth();
-  const { toast } = useToast();
   
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    const result = await forgotPassword(email);
-    setLoading(false);
-    if (result.success) {
-      setSent(true);
-    } else {
-      toast({
-        title: "Couldn't send recovery email",
-        description: result.error || "An unknown error occurred. Please try again.",
-        variant: "destructive"
-      });
+    setError("");
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
     }
+    if (!validateEmail(email)) {
+      setError("Enter a valid email address");
+      return;
+    }
+    setLoading(true);
+    await forgotPassword(email);
+    setLoading(false);
+    // Security-safe response: keep the same success message regardless of account existence.
+    setSent(true);
   };
 
   return (
     <AuthLayout 
       title={sent ? "Check your inbox" : "Recover password"} 
       subtitle={sent 
-        ? `We've sent recovery instructions to ${email}.`
+        ? `If this email exists, a reset link has been sent to ${email}.`
         : "Enter your email and we'll send you a link to reset your password."
       }
     >
@@ -48,6 +50,11 @@ export default function ForgotPassword() {
             onSubmit={handleSubmit} 
             className="space-y-5"
           >
+            {error && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-xs font-medium">
+                {error}
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-soft ml-1">Email address</label>
               <div className="relative group">
@@ -98,9 +105,6 @@ export default function ForgotPassword() {
             >
               Back to login
             </button>
-            <Link to="/reset-password" title="DEV ONLY" className="mt-4 block text-[10px] text-soft underline italic opacity-30">
-              Dev Mode: Go to Reset Page
-            </Link>
           </motion.div>
         )}
       </AnimatePresence>

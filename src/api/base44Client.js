@@ -12,7 +12,7 @@ function makeEntityStore(name) {
   const table = tableMap[name] || name.toLowerCase();
 
   return {
-    async list(sortField = '-created_date', limit = 500) {
+    async list(sortField = '-created_at', limit = 500) {
       if (sortField) {
         const desc = sortField.startsWith('-');
         const field = sortField.replace(/^-/, '');
@@ -24,7 +24,7 @@ function makeEntityStore(name) {
       if (error) { console.warn(`Supabase error listing ${table}:`, error); return []; }
       return data;
     },
-    async filter(predicates = {}, sortField = '-created_date', limit = 500) {
+    async filter(predicates = {}, sortField = '-created_at', limit = 500) {
       let query = supabase.from(table).select('*');
       for (const [k, v] of Object.entries(predicates)) {
         query = query.eq(k, v);
@@ -44,17 +44,15 @@ function makeEntityStore(name) {
       return data || null;
     },
     async create(data) {
-      const now = new Date().toISOString();
-      const insertData = { created_date: now, updated_date: now, ...data };
+      const { data: { user } } = await supabase.auth.getUser();
+      const insertData = { ...data, user_id: user?.id };
       
       const { data: created, error } = await supabase.from(table).insert([insertData]).select().single();
       if (error) { throw error; }
       return created;
     },
     async update(id, data) {
-      const updateData = { ...data, updated_date: new Date().toISOString() };
-      
-      const { data: updated, error } = await supabase.from(table).update(updateData).eq('id', id).select().single();
+      const { data: updated, error } = await supabase.from(table).update(data).eq('id', id).select().single();
       if (error) { throw error; }
       return updated;
     },

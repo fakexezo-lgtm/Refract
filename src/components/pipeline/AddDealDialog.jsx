@@ -1,10 +1,11 @@
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRoutes } from "@/lib/apiRoutes";
+import { useQueryClient } from "@tanstack/react-query";
 import { STAGES } from "@/lib/constants";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
@@ -14,18 +15,13 @@ import { Label } from "@/components/ui/label";
  * Simplified AddDealDialog for non-technical users.
  * Focuses on Client -> Deal -> Action mental model.
  */
-export default function AddDealDialog({ open, onOpenChange, initialStage = "lead" }) {
+export default function AddDealDialog({ open, onOpenChange, initialStage = "lead", clients = [], clientsLoading = false }) {
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
   const [clientId, setClientId] = useState("");
   const [value, setValue] = useState("");
   const [stage, setStage] = useState(initialStage);
   const [busy, setBusy] = useState(false);
-
-  const { data: clients = [] } = useQuery({ 
-    queryKey: ["clients"], 
-    queryFn: () => base44.entities.Client.list("-updated_date", 500) 
-  });
 
   useEffect(() => { 
     if (open) { 
@@ -38,32 +34,39 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !clientId) return;
+    if (!title.trim() || !clientId) {
+      toast.error("Please choose a client and enter a deal title.");
+      return;
+    }
     setBusy(true);
     
     try {
-        const deal = await base44.entities.Deal.create({
+        const parsedValue = value === "" ? null : Number.parseFloat(value);
+        const payload = {
             title: title.trim(),
             client_id: clientId,
-            value: parseFloat(value) || 0,
-            stage,
-            priority: "medium", // Default priority internally for now
-            updated_date: new Date().toISOString()
+            value: Number.isFinite(parsedValue) ? parsedValue : 0,
+            stage
+        };
+
+        const deal = await apiRoutes.createDeal({
+            ...payload
         });
-        
+
         await logActivity({ 
             client_id: clientId, 
             type: "deal_created", 
-            content: `New deal: ${title}`,
-            metadata: { deal_id: deal.id, value }
+            content: `New deal: ${title.trim()}`,
+            metadata: { deal_id: deal.id, value: payload.value }
         });
 
         qc.invalidateQueries({ queryKey: ["deals"] });
         qc.invalidateQueries({ queryKey: ["activities"] });
-        toast.success(`Deal "${title}" created successfully`);
+        
+        toast.success(`Deal "${title.trim()}" created successfully`);
         onOpenChange(false);
     } catch (err) {
-        toast.error("Failed to create deal");
+        toast.error(err?.message || "Failed to create deal. Please try again.");
     } finally {
         setBusy(false);
     }
@@ -84,11 +87,14 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
                 <SelectValue placeholder="Which client is this for?" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-hair">
-                {clients.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-                {clients.length === 0 && (
+                {clientsLoading ? (
+                    <div className="p-4 text-center text-xs text-soft italic">Loading clients...</div>
+                ) : clients.length === 0 ? (
                     <div className="p-4 text-center text-xs text-soft italic">No clients found. Add one in the Clients tab first.</div>
+                ) : (
+                    clients.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItem>
+                    ))
                 )}
               </SelectContent>
             </Select>

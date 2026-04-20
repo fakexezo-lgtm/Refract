@@ -5,10 +5,11 @@ import { Add01Icon, TrendingUp } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { STAGES } from "@/lib/constants";
-import { base44 } from "@/api/base44Client";
+import { apiRoutes } from "@/lib/apiRoutes";
 import { useQueryClient } from "@tanstack/react-query";
 import { logActivity } from "@/lib/activity";
 import EmptyState from "@/components/shared/EmptyState";
+import { toast } from "sonner";
 
 
 export default function ClientDeals({ deals = [], client, onAdd }) {
@@ -16,24 +17,31 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
 
   const changeStage = async (deal, newStage) => {
     if (newStage === deal.stage) return;
+    const previousDeals = qc.getQueryData(["deals"]);
     qc.setQueryData(["deals"], (old = []) => old.map(d => d.id === deal.id ? { ...d, stage: newStage } : d));
-    await base44.entities.Deal.update(deal.id, { stage: newStage });
-    const from = STAGES.find(s => s.id === deal.stage)?.label;
-    const to = STAGES.find(s => s.id === newStage)?.label;
-    await logActivity({
-      client_id: client.id,
-      type: "deal_stage_changed",
-      content: `${deal.title}: ${from} → ${to}`,
-      metadata: { 
-        deal_id: deal.id, 
-        from: deal.stage, 
-        to: newStage,
-        from_label: from,
-        to_label: to
-      }
-    });
-    qc.invalidateQueries({ queryKey: ["deals"] });
-    qc.invalidateQueries({ queryKey: ["activities"] });
+    try {
+      await apiRoutes.updateDeal(deal.id, { stage: newStage });
+      const from = STAGES.find(s => s.id === deal.stage)?.label;
+      const to = STAGES.find(s => s.id === newStage)?.label;
+      await logActivity({
+        client_id: client.id,
+        type: "deal_stage_changed",
+        content: `${deal.title}: ${from} → ${to}`,
+        metadata: {
+          deal_id: deal.id,
+          from: deal.stage,
+          to: newStage,
+          from_label: from,
+          to_label: to
+        }
+      });
+      qc.invalidateQueries({ queryKey: ["deals"] });
+      qc.invalidateQueries({ queryKey: ["activities"] });
+      toast.success("Deal updated");
+    } catch (error) {
+      qc.setQueryData(["deals"], previousDeals || []);
+      toast.error(error?.message || "Unable to update deal. Please try again.");
+    }
   };
 
   if (deals.length === 0) {

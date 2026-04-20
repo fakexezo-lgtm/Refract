@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
@@ -8,15 +9,21 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import EmptyState from "@/components/shared/EmptyState";
 import { parseISO, isPast } from "@/lib/format";
 import { format } from "date-fns";
+import { apiRoutes } from "@/lib/apiRoutes";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: tasks = [] } = useQuery({ queryKey: ["tasks"], queryFn: () => fetch('/api/tasks').then(r => r.json()) });
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => fetch('/api/clients').then(r => r.json()) });
-  const { data: deals = [] } = useQuery({ queryKey: ["deals"], queryFn: () => fetch('/api/deals').then(r => r.json()) });
-  const { data: activities = [] } = useQuery({ queryKey: ["activities"], queryFn: () => fetch('/api/activities').then(r => r.json()) });
+  const tasksQuery = useQuery({ queryKey: ["tasks"], queryFn: apiRoutes.getTasks });
+  const clientsQuery = useQuery({ queryKey: ["clients"], queryFn: apiRoutes.getClients });
+  const dealsQuery = useQuery({ queryKey: ["deals"], queryFn: apiRoutes.getDeals });
+  const activitiesQuery = useQuery({ queryKey: ["activities"], queryFn: apiRoutes.getActivities });
+
+  const tasks = tasksQuery.data ?? [];
+  const clients = clientsQuery.data ?? [];
+  const deals = dealsQuery.data ?? [];
+  const activities = activitiesQuery.data ?? [];
 
   const today = new Date(); today.setHours(0,0,0,0);
   const isToday = (d) => d && new Date(d).toDateString() === today.toDateString();
@@ -33,8 +40,48 @@ export default function Dashboard() {
     return "Good evening";
   })();
 
+  if (clientsQuery.isPending) {
+    return (
+      <div className="space-y-12">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-2">{format(new Date(), "EEEE, MMMM d")}</div>
+          <h1 className="font-serif text-4xl md:text-5xl text-ink">
+            {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
+          </h1>
+          <p className="text-soft mt-2">Here's what needs your attention today.</p>
+        </div>
+        <div className="rounded-2xl bg-cream border border-hair">
+          <div className="p-10 text-center text-soft text-sm">Loading your clients...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (clientsQuery.isError) {
+    return (
+      <div className="space-y-12">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-2">{format(new Date(), "EEEE, MMMM d")}</div>
+          <h1 className="font-serif text-4xl md:text-5xl text-ink">
+            {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
+          </h1>
+          <p className="text-soft mt-2">Here's what needs your attention today.</p>
+        </div>
+        <div className="rounded-2xl bg-cream border border-hair">
+          <EmptyState
+            icon={null}
+            title="Unable to load clients right now"
+            description="Please retry in a moment."
+            actionLabel="Retry"
+            onAction={() => clientsQuery.refetch()}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // If there are no clients, show a single empty state instead of multiple sections
-  if (clients.length === 0) {
+  if (clientsQuery.isSuccess && clients.length === 0) {
     return (
       <div className="space-y-12">
         <div>

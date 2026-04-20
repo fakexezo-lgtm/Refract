@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { apiRoutes } from "@/lib/apiRoutes";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkSquareIcon, AlertCircleIcon, Calendar03Icon, Timer01Icon, AddIcon, ArrowDown01Icon, ArrowRight01Icon, CheckmarkCircle03Icon } from "@hugeicons/core-free-icons";
@@ -9,19 +9,34 @@ import EmptyState from "@/components/shared/EmptyState";
 import { dueBucket } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { logActivity } from "@/lib/activity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-function Section({ icon: Icon, title, count, tone, children, empty, delay = 0 }) {
+// Cast JS components to any to bypass TS errors
+const ButtonAny = Button as any;
+const InputAny = Input as any;
+const DialogAny = Dialog as any;
+const DialogContentAny = DialogContent as any;
+const DialogHeaderAny = DialogHeader as any;
+const DialogTitleAny = DialogTitle as any;
+const SelectAny = Select as any;
+const SelectContentAny = SelectContent as any;
+const SelectItemAny = SelectItem as any;
+const SelectTriggerAny = SelectTrigger as any;
+const SelectValueAny = SelectValue as any;
+
+function Section({ icon: Icon, title, count, tone = "text-ink", children, empty, delay = 0, expanded = true, onToggle = () => {} }: any) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
     >
-      <div className="flex items-center gap-2 mb-4">
+      <button onClick={onToggle} className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
+        <HugeiconsIcon icon={expanded ? ArrowDown01Icon : ArrowRight01Icon} className="w-4 h-4 text-soft" />
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -38,33 +53,40 @@ function Section({ icon: Icon, title, count, tone, children, empty, delay = 0 })
         >
           ({count})
         </motion.span>
-      </div>
-      {count === 0 ? (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: delay + 0.2 }}
-          className="text-sm text-soft py-4"
-        >
-          {empty}
-        </motion.div>
-      ) : (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: delay + 0.2 }}
-          className="rounded-2xl bg-white border border-hair p-2 space-y-0.5"
-        >
-          <AnimatePresence>{children}</AnimatePresence>
-        </motion.div>
-      )}
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          count === 0 ? (
+            <motion.div
+              key={`${title}-empty`}
+              initial={{ opacity: 0, height: 0, overflow: "hidden" }}
+              animate={{ opacity: 1, height: "auto", transitionEnd: { overflow: "visible" } }}
+              exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+              transition={{ duration: 0.3 }}
+              className="text-sm text-soft py-2"
+            >
+              {empty}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`${title}-items`}
+              initial={{ opacity: 0, height: 0, overflow: "hidden" }}
+              animate={{ opacity: 1, height: "auto", transitionEnd: { overflow: "visible" } }}
+              exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+              transition={{ duration: 0.3 }}
+              className="space-y-2"
+            >
+              <AnimatePresence>{children}</AnimatePresence>
+            </motion.div>
+          )
+        )}
+      </AnimatePresence>
     </motion.section>
   );
 }
 
-function AddTaskDialog({ open, onOpenChange, task }) {
+function AddTaskDialog({ open, onOpenChange, task, clients = [] }: any) {
   const qc = useQueryClient();
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list("-updated_date", 500) });
   
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
@@ -74,7 +96,7 @@ function AddTaskDialog({ open, onOpenChange, task }) {
   const [clientFocused, setClientFocused] = useState(false);
 
   const isEdit = !!task;
-  const clientList = useMemo(() => clients.filter(c => c.name).sort((a, b) => a.name.localeCompare(b.name)), [clients]);
+  const clientList = useMemo(() => [...clients].sort((a, b) => (a.name || a.company || "").localeCompare(b.name || b.company || "")), [clients]);
 
   useEffect(() => {
     if (open) {
@@ -93,53 +115,63 @@ function AddTaskDialog({ open, onOpenChange, task }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !clientId) return;
-    setBusy(true);
-    
-    if (isEdit) {
-      await base44.entities.Task.update(task.id, { 
-        client_id: clientId, 
-        title: title.trim(), 
-        due_date: due || undefined 
-      });
-      toast.success("Task updated");
-    } else {
-      await base44.entities.Task.create({ 
-        client_id: clientId, 
-        title: title.trim(), 
-        due_date: due || undefined, 
-        completed: false 
-      });
-      toast.success("Task added");
+    if (!title.trim() || !clientId) {
+      toast.error("Task title and client are required.");
+      return;
     }
-    
-    qc.invalidateQueries({ queryKey: ["tasks"] });
-    qc.invalidateQueries({ queryKey: ["activities"] });
-    setBusy(false);
-    onOpenChange(false, isEdit ? task : null);
+    setBusy(true);
+    try {
+      if (isEdit) {
+        await apiRoutes.updateTask(task.id, {
+          client_id: clientId,
+          title: title.trim(),
+          due_date: due || undefined
+        });
+        toast.success("Task updated");
+      } else {
+        await apiRoutes.createTask({
+          client_id: clientId,
+          title: title.trim(),
+          due_date: due || undefined,
+          completed: false
+        });
+        toast.success("Task added");
+      }
+
+      // Small pause to let any inflight task-completion writes settle on the server
+      // before we trigger a fresh refetch (prevents race condition with completed tasks)
+      await new Promise((r) => setTimeout(r, 300));
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["activities"] });
+      onOpenChange(false, isEdit ? task : null);
+    } catch (error) {
+      toast.error(error?.message || "Unable to save task.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
+    <DialogAny open={open} onOpenChange={onOpenChange}>
+      <DialogContentAny className="max-w-md rounded-2xl border-hair bg-white">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         >
-          <DialogHeader>
-            <DialogTitle className="font-serif text-2xl text-ink">{isEdit ? "Edit task" : "Add task"}</DialogTitle>
-          </DialogHeader>
+          <DialogHeaderAny>
+            <DialogTitleAny className="font-serif text-2xl text-ink">{isEdit ? "Edit task" : "Add task"}</DialogTitleAny>
+          </DialogHeaderAny>
           <form onSubmit={submit} className="space-y-4 pt-2">
             <motion.div
               animate={{ scale: titleFocused ? 1.02 : 1 }}
               transition={{ duration: 0.2 }}
             >
               <label className="text-xs text-soft">Task</label>
-              <Input 
+              <InputAny 
                 autoFocus 
                 value={title} 
-                onChange={e => setTitle(e.target.value)} 
+                onChange={(e: any) => setTitle(e.target.value)} 
                 onFocus={() => setTitleFocused(true)}
                 onBlur={() => setTitleFocused(false)}
                 placeholder="Send revised proposal"
@@ -152,52 +184,52 @@ function AddTaskDialog({ open, onOpenChange, task }) {
               transition={{ duration: 0.2 }}
             >
               <label className="text-xs text-soft">Client</label>
-              <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger
+              <SelectAny value={clientId} onValueChange={setClientId}>
+                <SelectTriggerAny
                   className={"mt-1 h-11 rounded-lg border-hair bg-white transition-all duration-200" + (clientFocused ? " border-ink/60 shadow-sm" : "")}
                   onFocus={() => setClientFocused(true)}
                   onBlur={() => setClientFocused(false)}
                 >
-                  <SelectValue placeholder="Select a client..." />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg border-hair bg-white">
-                  {clientList.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  <SelectValueAny placeholder="Select a client..." />
+                </SelectTriggerAny>
+                <SelectContentAny className="rounded-lg border-hair bg-white">
+                  {clientList.map((c: any) => (
+                    <SelectItemAny key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItemAny>
                   ))}
-                </SelectContent>
-              </Select>
+                </SelectContentAny>
+              </SelectAny>
             </motion.div>
             
             <div>
               <label className="text-xs text-soft">Due date</label>
-              <Input 
+              <InputAny 
                 type="date" 
                 value={due} 
-                onChange={e => setDue(e.target.value)} 
+                onChange={(e: any) => setDue(e.target.value)} 
                 className="mt-1 h-11 rounded-lg border-hair bg-white" 
               />
             </div>
             
             <div className="flex justify-end gap-2 pt-3">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full">
+                <ButtonAny type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full">
                   Cancel
-                </Button>
+                </ButtonAny>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button 
+                <ButtonAny 
                   type="submit" 
                   disabled={!title.trim() || !clientId || busy} 
                   className="rounded-full bg-charcoal hover:bg-black text-white"
                 >
                   {busy ? "Saving…" : isEdit ? "Save changes" : "Add task"}
-                </Button>
+                </ButtonAny>
               </motion.div>
             </div>
           </form>
         </motion.div>
-      </DialogContent>
-    </Dialog>
+      </DialogContentAny>
+    </DialogAny>
   );
 }
 
@@ -208,10 +240,20 @@ export default function Tasks() {
   const [editTask, setEditTask] = useState(null);
   const [showHints, setShowHints] = useState(false);
   const [completedExpanded, setCompletedExpanded] = useState(false);
+  const [sectionExpanded, setSectionExpanded] = useState({
+    overdue: true,
+    today: true,
+    upcoming: true
+  });
   const [filterClient, setFilterClient] = useState("all");
   
-  const { data: tasks = [], isLoading: tasksLoading } = useQuery({ queryKey: ["tasks"], queryFn: () => base44.entities.Task.list("-updated_date", 500) });
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list("-updated_date", 500) });
+  const { data: tasks = [], isLoading: tasksLoading, isError: tasksError, error: tasksErrorDetails } = useQuery({ 
+    queryKey: ["tasks"], 
+    queryFn: apiRoutes.getTasks,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 30,    // 30 minutes
+  });
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: apiRoutes.getClients });
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [c.id, c])), [clients]);
 
   const buckets = useMemo(() => {
@@ -227,11 +269,18 @@ export default function Tasks() {
   }, [tasks, filterClient]);
 
   const total = buckets.overdue.length + buckets.today.length + buckets.upcoming.length;
+  const hasActiveFilter = filterClient !== "all";
 
   useEffect(() => {
     const timer = setTimeout(() => setShowHints(true), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (buckets.completed.length > 0) {
+      setCompletedExpanded(true);
+    }
+  }, [buckets.completed.length]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -269,10 +318,35 @@ export default function Tasks() {
           const idx = parseInt(sessionStorage.getItem('taskIndex') || '0', 10);
           const task = allTasks[idx];
           if (task && !task.completed) {
-            qc.setQueryData(["tasks"], (old = []) =>
-              old.map(t => t.id === task.id ? { ...t, completed: true, completed_at: new Date().toISOString() } : t)
-            );
-            base44.entities.Task.update(task.id, { completed: true, completed_at: new Date().toISOString() });
+            const updateData = { completed: true, completed_at: new Date().toISOString() };
+
+            // Update cache directly — do NOT invalidate (would race with fresh fetch)
+            const applyToCache = (key: any, patch: any) => {
+              qc.setQueryData(key, (old: any = []) => {
+                if (!Array.isArray(old)) return old;
+                return old.map((t: any) => (t.id === task.id ? { ...t, ...patch } : t));
+              });
+            };
+
+            applyToCache(["tasks"], updateData);
+            if (task.client_id) applyToCache(["tasks", task.client_id], updateData);
+
+            apiRoutes.updateTask(task.id, updateData)
+              .then((saved: any) => {
+                const final = saved || { ...task, ...updateData };
+                applyToCache(["tasks"], final);
+                if (task.client_id) applyToCache(["tasks", task.client_id], final);
+                if (task.client_id) {
+                  logActivity({ client_id: task.client_id, type: "task_completed", content: `Completed: ${task.title}`, metadata: {} }).catch(() => {});
+                }
+                qc.invalidateQueries({ queryKey: ["activities"] });
+              })
+              .catch(() => {
+                applyToCache(["tasks"], { completed: false, completed_at: null });
+                if (task.client_id) applyToCache(["tasks", task.client_id], { completed: false, completed_at: null });
+                toast.error("Failed to complete task");
+              });
+
             toast.success(`"${task.title}" completed`, { duration: 3000 });
           }
           break;
@@ -299,7 +373,7 @@ export default function Tasks() {
   return (
     <div className="space-y-6">
       <motion.div 
-        className="flex items-start justify-between"
+        className="flex items-start justify-between gap-3"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
@@ -330,71 +404,46 @@ export default function Tasks() {
             {total} open · focused on what moves the needle
           </motion.p>
         </div>
-        {clients.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25, duration: 0.3 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Button onClick={() => setAddTaskOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white">
-              <HugeiconsIcon icon={AddIcon} className="w-4 h-4 mr-1" />
-              Add task
-            </Button>
-          </motion.div>
-        )}
-        {clients.length > 0 && (
-          <select
-            value={filterClient}
-            onChange={(e) => setFilterClient(e.target.value)}
-            className="h-9 px-3 rounded-full border border-hair bg-white text-sm text-soft focus:outline-none focus:border-ink/40"
-          >
-            <option value="all">All clients</option>
-            {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        )}
+        <div className="flex items-center gap-2">
+          {clients.length > 0 && (
+            <SelectAny value={filterClient} onValueChange={setFilterClient}>
+              <SelectTriggerAny className="h-9 min-w-[130px] w-auto rounded-full border-hair bg-white text-sm text-soft">
+                <SelectValueAny placeholder="All clients" />
+              </SelectTriggerAny>
+              <SelectContentAny className="rounded-xl border-hair bg-white">
+                <SelectItemAny value="all">All clients</SelectItemAny>
+                {clients.map((c: any) => (
+                  <SelectItemAny key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItemAny>
+                ))}
+              </SelectContentAny>
+            </SelectAny>
+          )}
+          {clients.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <ButtonAny onClick={() => setAddTaskOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white">
+                <HugeiconsIcon icon={AddIcon} className="w-4 h-4 mr-1" />
+                Add task
+              </ButtonAny>
+            </motion.div>
+          )}
+        </div>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.3 }}
-        className="relative"
-      >
-        <input
-          type="text"
-          placeholder="+ Add a task... press Enter"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && e.target.value.trim()) {
-              e.preventDefault();
-              const title = e.target.value.trim();
-              e.target.value = '';
-              const firstClient = clients[0]?.id;
-              if (firstClient) {
-                (async () => {
-                  await base44.entities.Task.create({
-                    client_id: firstClient,
-                    title: title,
-                    due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-                    completed: false
-                  });
-                  qc.invalidateQueries({ queryKey: ["tasks"] });
-                  toast.success('Task added');
-                })();
-              } else {
-                setAddTaskOpen(true);
-              }
-            }
-          }}
-          className="w-full h-11 px-4 pl-10 rounded-full border border-hair bg-white text-sm placeholder:text-soft/50 focus:outline-none focus:border-ink/40 focus:ring-2 focus:ring-ink/10 transition-all"
-        />
-        <HugeiconsIcon icon={AddIcon} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft/40" />
-      </motion.div>
-
-      {tasks.length === 0 ? (
+      {tasksLoading ? (
+        <div className="rounded-2xl bg-cream border border-hair p-6 text-sm text-soft">
+          Loading tasks...
+        </div>
+      ) : tasksError ? (
+        <div className="rounded-2xl bg-cream border border-hair p-6 text-sm text-danger">
+          {tasksErrorDetails?.message || "Unable to load tasks right now."}
+        </div>
+      ) : tasks.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -409,51 +458,91 @@ export default function Tasks() {
             onAction={() => setAddTaskOpen(true)}
           />
         </motion.div>
+      ) : total === 0 && hasActiveFilter ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="rounded-2xl bg-cream border border-hair p-6"
+        >
+          <EmptyState
+            icon={CheckmarkSquareIcon}
+            title="No open tasks for this client."
+            description="Try another client filter or add a new task."
+            actionLabel="Clear filter"
+            onAction={() => setFilterClient("all")}
+          />
+        </motion.div>
       ) : (
         <>
-          <Section icon={AlertCircleIcon} title="Overdue" count={buckets.overdue.length} tone="text-danger" empty="Nothing overdue. You're on top of it." delay={0.3}>
-            {buckets.overdue.map((t, idx) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue taskIndex={idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
+          <Section
+            icon={AlertCircleIcon}
+            title="Overdue"
+            count={buckets.overdue.length}
+            tone="text-danger"
+            empty="Nothing overdue. You're on top of it."
+            delay={0.3}
+            expanded={sectionExpanded.overdue}
+            onToggle={() => setSectionExpanded((prev) => ({ ...prev, overdue: !prev.overdue }))}
+          >
+            {buckets.overdue.map((t: any, idx: number) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue taskIndex={idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
           </Section>
-          <Section icon={Calendar03Icon} title="Today" count={buckets.today.length} empty="Nothing scheduled for today." delay={0.45}>
-            {buckets.today.map((t, idx) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={buckets.overdue.length + idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
+          <Section
+            icon={Calendar03Icon}
+            title="Today"
+            count={buckets.today.length}
+            tone="text-ink"
+            empty="Nothing scheduled for today."
+            delay={0.45}
+            expanded={sectionExpanded.today}
+            onToggle={() => setSectionExpanded((prev) => ({ ...prev, today: !prev.today }))}
+          >
+            {buckets.today.map((t: any, idx: number) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={buckets.overdue.length + idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
           </Section>
-          <Section icon={Timer01Icon} title="Upcoming" count={buckets.upcoming.length} empty="Nothing queued up yet." delay={0.6}>
-            {buckets.upcoming.map((t, idx) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={buckets.overdue.length + buckets.today.length + idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
+          <Section
+            icon={Timer01Icon}
+            title="Upcoming"
+            count={buckets.upcoming.length}
+            tone="text-soft"
+            empty="Nothing queued up yet."
+            delay={0.6}
+            expanded={sectionExpanded.upcoming}
+            onToggle={() => setSectionExpanded((prev) => ({ ...prev, upcoming: !prev.upcoming }))}
+          >
+            {buckets.upcoming.map((t: any, idx: number) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={buckets.overdue.length + buckets.today.length + idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
           </Section>
 
-          {buckets.completed.length > 0 && (
-            <motion.section>
-              <button
-                onClick={() => setCompletedExpanded(!completedExpanded)}
-                className="flex items-center gap-2 mb-4 mt-6 hover:opacity-70 transition-opacity"
-              >
-                <HugeiconsIcon 
-                  icon={completedExpanded ? ArrowDown01Icon : ArrowRight01Icon} 
-                  className="w-4 h-4 text-soft" 
-                />
-                <h2 className="font-serif text-2xl text-soft">Completed</h2>
-                <span className="text-xs text-soft">({buckets.completed.length})</span>
-              </button>
-              <AnimatePresence>
-                {completedExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="rounded-2xl bg-white border border-hair p-2 space-y-0.5">
-                      {buckets.completed.slice(0, 5).map((t, idx) => (
-                        <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={-1} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />
-                      ))}
-                    </div>
-                    
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.section>
-          )}
+          <Section
+            icon={CheckmarkCircle03Icon}
+            title="Completed"
+            count={buckets.completed.length}
+            tone="text-success"
+            empty="No completed tasks yet."
+            delay={0.8}
+            expanded={completedExpanded}
+            onToggle={() => setCompletedExpanded(!completedExpanded)}
+          >
+            {buckets.completed.map((t: any) => (
+              <TaskRow 
+                key={t.id} 
+                task={t} 
+                client={clientMap[t.client_id]} 
+                taskIndex={-1} 
+                onEdit={null} 
+              />
+            ))}
+            {buckets.completed.length > 5 && (
+              <div className="pt-2 text-center">
+                <ButtonAny
+                  variant="ghost"
+                  onClick={() => navigate('/app/tasks/history')}
+                  className="text-xs text-soft h-8"
+                >
+                  View history
+                </ButtonAny>
+              </div>
+            )}
+          </Section>
         </>
       )}
 
@@ -464,21 +553,9 @@ export default function Tasks() {
           if (!open) setEditTask(null);
         }} 
         task={editTask} 
+        clients={clients}
       />
       
-      <AnimatePresence>
-        {showHints && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.3 }}
-            className="text-xs text-soft/50 text-center"
-          >
-            Press <kbd className="px-1.5 py-0.5 bg-white border border-hair rounded text-soft mx-0.5">n</kbd> add · <kbd className="px-1.5 py-0.5 bg-white border border-hair rounded text-soft mx-0.5">j</kbd>/<kbd className="px-1.5 py-0.5 bg-white border border-hair rounded text-soft mx-0.5">k</kbd> nav · <kbd className="px-1.5 py-0.5 bg-white border border-hair rounded text-soft mx-0.5">Space</kbd> done · <kbd className="px-1.5 py-0.5 bg-white border border-hair rounded text-soft mx-0.5">?</kbd> help · <kbd className="px-1.5 py-0.5 bg-white border border-hair rounded text-soft mx-0.5">Esc</kbd> reset
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

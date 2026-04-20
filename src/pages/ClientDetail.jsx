@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ClientHeader from "@/components/client/ClientHeader";
 import Timeline from "@/components/client/Timeline";
@@ -15,6 +15,7 @@ import { parseISO } from "@/lib/format";
 export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [noteOpen, setNoteOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
@@ -22,24 +23,21 @@ export default function ClientDetail() {
 
   const { data: client, isLoading } = useQuery({
     queryKey: ["client", id],
-    queryFn: async () => {
-      const all = await base44.entities.Client.list("-created_date", 500);
-      return all.find(c => c.id === id) || null;
-    },
+    queryFn: () => fetch(`/api/clients/${id}`).then(r => r.json()),
   });
   const { data: activities = [] } = useQuery({
     queryKey: ["activities", id],
-    queryFn: () => base44.entities.Activity.filter({ client_id: id }, "-created_date", 200),
+    queryFn: () => fetch(`/api/clients/${id}/activities`).then(r => r.json()),
     enabled: !!id,
   });
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks", id],
-    queryFn: () => base44.entities.Task.filter({ client_id: id }, "-created_date", 200),
+    queryFn: () => fetch(`/api/clients/${id}/tasks`).then(r => r.json()),
     enabled: !!id,
   });
   const { data: deals = [] } = useQuery({
     queryKey: ["deals", id],
-    queryFn: () => base44.entities.Deal.filter({ client_id: id }, "-created_date", 50),
+    queryFn: () => fetch(`/api/clients/${id}/deals`).then(r => r.json()),
     enabled: !!id,
   });
 
@@ -63,7 +61,11 @@ export default function ClientDetail() {
 
   const onStatusChange = async (status) => {
     qc.setQueryData(["client", id], old => ({ ...old, status }));
-    await base44.entities.Client.update(id, { status });
+    await fetch(`/api/clients/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
     qc.invalidateQueries({ queryKey: ["clients"] });
     qc.invalidateQueries({ queryKey: ["client", id] });
   };

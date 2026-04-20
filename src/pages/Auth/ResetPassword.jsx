@@ -32,9 +32,13 @@ export default function ResetPassword() {
     }
 
     setLoading(true);
-    const ok = await resetPassword(password);
+    const result = await resetPassword(password);
     setLoading(false);
-    if (ok) setSuccess(true);
+    if (result.success) {
+      setSuccess(true);
+    } else {
+      setError(result.error || "An unknown error occurred. Please try again.");
+    }
   };
 
   return (

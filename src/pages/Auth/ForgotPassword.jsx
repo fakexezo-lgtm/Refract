@@ -5,10 +5,12 @@ import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, ArrowRight01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { forgotPassword } = useAuth();
+  const { toast } = useToast();
   
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,9 +19,17 @@ export default function ForgotPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const ok = await forgotPassword(email);
+    const result = await forgotPassword(email);
     setLoading(false);
-    if (ok) setSent(true);
+    if (result.success) {
+      setSent(true);
+    } else {
+      toast({
+        title: "Couldn't send recovery email",
+        description: result.error || "An unknown error occurred. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

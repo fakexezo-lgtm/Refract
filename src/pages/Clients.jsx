@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SearchIcon, Add01Icon, UserIcon } from "@hugeicons/core-free-icons";
@@ -19,17 +19,18 @@ const FILTERS = [
 ];
 
 export default function Clients() {
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [addOpen, setAddOpen] = useState(false);
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list("-updated_date", 500),
+    queryFn: () => fetch('/api/clients').then(r => r.json()),
   });
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks"],
-    queryFn: () => base44.entities.Task.list("-due_date", 500),
+    queryFn: () => fetch('/api/tasks').then(r => r.json()),
   });
 
   const nextTaskByClient = useMemo(() => {

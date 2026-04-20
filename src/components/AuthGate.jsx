@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 
-export default function AuthGate({ children, requireOnboarded = true }) {
+export default function AuthGate({ children, requireOnboarded = true, requireVerified = true }) {
   const { user, isAuthenticated, isLoadingAuth, navigateToLogin } = useAuth();
 
   useEffect(() => {
@@ -20,8 +20,11 @@ export default function AuthGate({ children, requireOnboarded = true }) {
   }
   if (!isAuthenticated) return null;
 
-  // Only redirect to onboarding if explicitly not onboarded (false), not if undefined/null
-  if (requireOnboarded && user && user.onboarded === false) {
+  if (requireVerified && user && !user?.email_confirmed_at) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  if (requireOnboarded && user && !user?.user_metadata?.onboarded) {
     return <Navigate to="/onboarding" replace />;
   }
 

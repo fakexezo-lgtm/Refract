@@ -9,7 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 import { logActivity } from "@/lib/activity";
 import EmptyState from "@/components/shared/EmptyState";
-import StageBadge from "@/components/shared/StageBadge";
+
 
 export default function ClientDeals({ deals = [], client, onAdd }) {
   const qc = useQueryClient();

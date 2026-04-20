@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/lib/AuthContext";
+import { UserButton } from "@clerk/react";
 import CommandPalette from "@/components/command/CommandPalette";
 import QuickAddClientDialog from "@/components/clients/QuickAddClientDialog";
 import { useHotkeys } from "@/hooks/useHotkeys";
@@ -16,7 +16,7 @@ const NAV = [
   { to: "/app/settings", label: "Settings", icon: SettingsIcon },
 ];
 
-function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
+function SidebarContent({ onCommand, onAdd, onNavigate }) {
   return (
     <div className="h-full flex flex-col bg-charcoal text-white px-5 py-6">
       <div className="flex items-center gap-2 px-2 mb-8">
@@ -68,21 +68,14 @@ function SidebarContent({ user, onCommand, onAdd, onNavigate }) {
         ))}
       </nav>
 
-      <div className="pt-4 mt-4 border-t border-white/10 flex items-center gap-3 px-2">
-        <div className="w-8 h-8 rounded-full bg-cream text-ink flex items-center justify-center text-xs font-medium">
-          {(user?.full_name || user?.email || "?")[0].toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm truncate">{user?.full_name || "You"}</div>
-          <div className="text-[11px] text-white/50 truncate">{user?.email}</div>
-        </div>
+      <div className="pt-4 mt-4 border-t border-white/10 flex items-center px-2">
+        <UserButton showName appearance={{ elements: { userButtonBox: "flex-row-reverse w-full justify-between", userButtonOuterIdentifier: "text-white text-sm truncate" } }} />
       </div>
     </div>
   );
 }
 
 export default function Layout() {
-  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -96,7 +89,7 @@ export default function Layout() {
     <div className="min-h-screen bg-whisper">
       {/* Desktop sidebar */}
       <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 z-30">
-        <SidebarContent user={user} onCommand={() => setCmdOpen(true)} onAdd={() => setAddOpen(true)} />
+        <SidebarContent onCommand={() => setCmdOpen(true)} onAdd={() => setAddOpen(true)} />
       </aside>
 
       {/* Mobile top bar */}
@@ -132,11 +125,10 @@ export default function Layout() {
               className="lg:hidden fixed right-0 top-0 h-screen w-72 z-50"
             >
               <div className="relative h-full">
-                <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 z-10 text-white/70 p-1">
+                <button onClick={() => setMobileOpen(false)} className="absolute top-4 left-4 z-10 text-white/70 p-1">
                   <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
                 </button>
                 <SidebarContent
-                  user={user}
                   onCommand={() => { setMobileOpen(false); setCmdOpen(true); }}
                   onAdd={() => { setMobileOpen(false); setAddOpen(true); }}
                   onNavigate={() => setMobileOpen(false)}

@@ -4,12 +4,14 @@ import { useAuth } from "@/lib/AuthContext";
 import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffIcon, Mail01Icon, LockPasswordIcon, ArrowRight01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register, authError } = useAuth();
+  const { login, register } = useAuth();
+  const { toast } = useToast();
   
   const [mode, setMode] = useState("login"); // 'login' or 'signup'
   const [name, setName] = useState("");
@@ -37,19 +39,33 @@ export default function Login() {
     }
 
     setLoading(true);
-    let success = false;
+    let result;
     if (mode === "login") {
-      success = await login(email, password);
+      result = await login(email, password);
     } else {
-      success = await register(name, email, password);
+      result = await register(name, email, password);
     }
     setLoading(false);
 
-    if (success) {
+    if (result.success) {
       if (mode === "login") {
         navigate("/app");
       } else {
-        navigate("/verify-email");
+        navigate("/verify-email", { state: { email } });
+      }
+    } else {
+      if (result.error?.includes("Email not confirmed")) {
+        navigate("/verify-email", { state: { email } });
+        toast({
+          title: "Please verify your email",
+          description: "We've requested a verification for this account. Check your inbox.",
+        });
+      } else {
+        toast({
+          title: mode === "login" ? "Login Failed" : "Registration Failed",
+          description: result.error || "Please check your details and try again.",
+          variant: "destructive"
+        });
       }
     }
   };
@@ -86,7 +102,7 @@ export default function Login() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <AnimatePresence mode="wait">
-          {(internalError || authError) && (
+          {internalError && (
             <motion.div 
               key="error"
               initial={{ opacity: 0, height: 0 }}
@@ -94,7 +110,7 @@ export default function Login() {
               exit={{ opacity: 0, height: 0 }}
               className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-xs font-medium overflow-hidden"
             >
-              {internalError || authError?.message}
+              {internalError}
             </motion.div>
           )}
         </AnimatePresence>

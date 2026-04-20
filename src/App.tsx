@@ -1,11 +1,9 @@
-// @ts-nocheck
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { Show, useUser } from '@clerk/react';
 
 import Landing from '@/pages/Landing';
 import Onboarding from '@/pages/Onboarding';
@@ -15,50 +13,39 @@ import Clients from '@/pages/Clients';
 import ClientDetail from '@/pages/ClientDetail';
 import Pipeline from '@/pages/Pipeline';
 import Tasks from '@/pages/Tasks';
-import TaskHistory from '@/pages/TaskHistory';
 import Settings from '@/pages/Settings';
-import AuthGate from '@/components/AuthGate';
-import Login from '@/pages/Auth/Login';
-import VerifyEmail from '@/pages/Auth/VerifyEmail';
-import ForgotPassword from '@/pages/Auth/ForgotPassword';
-import ResetPassword from '@/pages/Auth/ResetPassword';
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <>
+      <Show when="signed-in">{children}</Show>
+      <Show when="signed-out"><Navigate to="/" replace /></Show>
+    </>
+  );
+};
+
+const RequireOnboarding = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoaded } = useUser();
+  if (!isLoaded) return null;
+  if (!user?.unsafeMetadata?.onboarded) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  return children;
+};
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
-
-  if (false && (isLoadingPublicSettings || isLoadingAuth)) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-whisper">
-        <div className="w-6 h-6 border-2 border-border border-t-ink rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    }
-    // For auth_required, just let them see the landing page
-  }
-
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Login />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/onboarding" element={
-        <AuthGate requireOnboarded={false}><Onboarding /></AuthGate>
+        <ProtectedRoute><Onboarding /></ProtectedRoute>
       } />
-      <Route path="/app" element={<AuthGate><Layout /></AuthGate>}>
+      <Route path="/app" element={<ProtectedRoute><RequireOnboarding><Layout /></RequireOnboarding></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="clients" element={<Clients />} />
         <Route path="clients/:id" element={<ClientDetail />} />
         <Route path="pipeline" element={<Pipeline />} />
         <Route path="tasks" element={<Tasks />} />
-        <Route path="tasks/history" element={<TaskHistory />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
@@ -68,14 +55,12 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <AuthProvider>
+    <Router>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
+        <AuthenticatedApp />
         <Toaster />
       </QueryClientProvider>
-    </AuthProvider>
+    </Router>
   )
 }
 

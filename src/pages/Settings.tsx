@@ -1,30 +1,20 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
-  LogoutIcon, 
   UserIcon, 
-  Notification01Icon, 
-  PaintBrushIcon, 
   ShieldIcon, 
-  CheckmarkSquareIcon, 
   DatabaseIcon, 
-  ArrowRight01Icon, 
-  ViewIcon, 
-  ZapIcon, 
   Download01Icon, 
   Delete02Icon,
-  CircleIcon,
   InformationCircleIcon,
-  Cancel01Icon
+  LogoutIcon
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 import {
   Dialog,
@@ -35,120 +25,110 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 const CATEGORIES = [
   { id: "profile", label: "Profile", icon: UserIcon },
-  { id: "preferences", label: "Preferences", icon: ZapIcon },
-  { id: "notifications", label: "Notifications", icon: Notification01Icon },
-  { id: "appearance", label: "Appearance", icon: PaintBrushIcon },
-  { id: "workflow", label: "Workflow", icon: CheckmarkSquareIcon },
-  { id: "security", label: "Account & Security", icon: ShieldIcon },
-  { id: "data", label: "Data & Privacy", icon: DatabaseIcon },
+  { id: "account", label: "Account", icon: ShieldIcon },
+  { id: "data", label: "Data", icon: DatabaseIcon },
 ];
 
 export default function Settings() {
-  const { user, logout, checkUserAuth } = useAuth() as any;
-  const { toast } = useToast();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
-  
-  // Settings State
+
   const [settings, setSettings] = useState({
     full_name: user?.full_name || "",
     email: user?.email || "",
-    dark_mode: document.documentElement.classList.contains("dark"),
-    compact_mode: localStorage.getItem("compact_mode") === "true",
-    weekly_digest: true,
-    notify_email: true,
-    notify_reminders: true,
-    notify_due_dates: true,
-    notify_activity: false,
-    default_due_date: "none",
-    auto_complete: true,
-    show_completed: false,
-    default_view: "today",
-    font_size: "medium",
   });
-
-  const [initialSettings, setInitialSettings] = useState({ ...settings });
-  const isDirty = JSON.stringify(settings) !== JSON.stringify(initialSettings);
-
-  const updateSetting = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      // API call placeholder for new settings
-      if (settings.full_name !== initialSettings.full_name) {
-        await base44.auth.updateMe({ full_name: settings.full_name });
-      }
-      
-      // Handle dark mode side effect
-      document.documentElement.classList.toggle("dark", settings.dark_mode);
-      localStorage.setItem("compact_mode", settings.compact_mode.toString());
-      
-      if (checkUserAuth) await checkUserAuth();
-      
-      setInitialSettings({ ...settings });
-      toast({
-        title: "Changes saved",
-        description: "Your settings have been updated successfully.",
+      // Save profile to Supabase
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: settings.full_name })
       });
+      
+      if (!response.ok) throw new Error('Failed to save');
+      
+      alert('Changes saved successfully');
     } catch (e) {
-      toast({
-        title: "Error",
-        description: "Failed to save changes. Please try again.",
-        variant: "destructive",
-      });
+      alert('Failed to save changes. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDiscard = () => {
-    setSettings({ ...initialSettings });
-    toast({
-      title: "Changes discarded",
-      description: "Settings have been reset to their original values.",
-    });
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
 
-  const [showSaveBar, setShowSaveBar] = useState(true);
+  const handleDeleteAccount = async () => {
+    try {
+      // Delete user data from Supabase
+      await fetch('/api/account/delete', {
+        method: 'DELETE'
+      });
+      
+      await logout();
+      navigate('/login');
+    } catch (e) {
+      alert('Failed to delete account. Please try again.');
+    }
+    setDeleteConfirm(false);
+  };
 
-  // Auto-show save bar when dirty
-  useEffect(() => {
-    if (isDirty) setShowSaveBar(true);
-  }, [isDirty]);
+  const handleExportData = async () => {
+    try {
+      // Export data as CSV
+      const response = await fetch('/api/export', {
+        method: 'POST'
+      });
+      
+      const data = await response.json();
+      
+      // Convert to CSV
+      const clientsCSV = convertToCSV(data.clients || [], ['name', 'email', 'company', 'status', 'created_date']);
+      const tasksCSV = convertToCSV(data.tasks || [], ['title', 'completed', 'due_date', 'client_id', 'created_date']);
+      const dealsCSV = convertToCSV(data.deals || [], ['title', 'value', 'stage', 'client_id', 'created_date']);
+      
+      // Download files
+      downloadCSV(clientsCSV, 'clients.csv');
+      downloadCSV(tasksCSV, 'tasks.csv');
+      downloadCSV(dealsCSV, 'deals.csv');
+      
+      alert('Data exported successfully!');
+    } catch (e) {
+      alert('Failed to export data. Please try again.');
+    }
+  };
 
-  const renderToggle = (id: string, label: string, description: string, key: string) => (
-    <div className="flex items-center justify-between py-4 group">
-      <div className="space-y-0.5">
-        <label htmlFor={id} className="text-sm font-medium text-ink flex items-center gap-1.5 cursor-pointer">
-          {label}
-        </label>
-        <p className="text-xs text-soft leading-relaxed max-w-sm">
-          {description}
-        </p>
-      </div>
-      <Switch 
-        id={id}
-        checked={settings[key]} 
-        onCheckedChange={(val) => updateSetting(key, val)} 
-      />
-    </div>
-  );
+  const convertToCSV = (data, fields) => {
+    if (!data.length) return '';
+    const header = fields.join(',');
+    const rows = data.map(item => fields.map(field => {
+      const value = item[field] || '';
+      return `"${String(value).replace(/"/g, '""')}"`;
+    }).join(','));
+    return [header, ...rows].join('\n');
+  };
+
+  const downloadCSV = (csv, filename) => {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="pb-32">
@@ -171,7 +151,7 @@ export default function Settings() {
                   : "text-soft hover:text-ink hover:bg-cream"
               }`}
             >
-              <HugeiconsIcon icon={cat.icon} size={18} strokeWidth={cat.id === activeTab ? 2 : 1.75} />
+              <HugeiconsIcon icon={cat.icon} size={18} />
               {cat.label}
             </button>
           ))}
@@ -198,7 +178,7 @@ export default function Settings() {
                       <label className="text-xs font-bold uppercase tracking-wider text-soft ml-1">Full name</label>
                       <Input 
                         value={settings.full_name} 
-                        onChange={(e: any) => updateSetting("full_name", e.target.value)} 
+                        onChange={(e) => setSettings(prev => ({ ...prev, full_name: e.target.value }))}
                         placeholder="Your name"
                         className="h-11 rounded-xl border-hair bg-cream/10 focus:bg-white transition-all shadow-none" 
                       />
@@ -207,7 +187,7 @@ export default function Settings() {
                       <label className="text-xs font-bold uppercase tracking-wider text-soft ml-1">Email address</label>
                       <div className="relative">
                         <Input 
-                          value={settings.email} 
+                          value={user?.email || ''} 
                           disabled 
                           className="h-11 rounded-xl border-hair bg-whisper text-soft cursor-not-allowed pr-10" 
                         />
@@ -215,192 +195,35 @@ export default function Settings() {
                           <HugeiconsIcon icon={InformationCircleIcon} size={16} className="text-soft/40" />
                         </div>
                       </div>
-                      <p className="text-[10px] text-soft/70 ml-1 italic">Contact support to change your account email.</p>
                     </div>
+                    <Button onClick={handleSave} disabled={loading} className="bg-charcoal text-white hover:bg-black rounded-xl">
+                      {loading ? 'Saving...' : 'Save Changes'}
+                    </Button>
                   </div>
                 </div>
               )}
 
-              {activeTab === "preferences" && (
+              {activeTab === "account" && (
                 <div className="space-y-8">
                   <div>
-                    <h2 className="font-serif text-3xl text-ink mb-2">Preferences</h2>
-                    <p className="text-sm text-soft">Configure your workspace defaults.</p>
-                  </div>
-                  <div className="divide-y divide-hair">
-                    {renderToggle(
-                      "weekly-digest", 
-                      "Weekly digest", 
-                      "Get a summary of your tasks and client activity every Monday morning.",
-                      "weekly_digest"
-                    )}
-                    {renderToggle(
-                      "auto-complete", 
-                      "Auto-complete actions", 
-                      "Automatically complete related sub-tasks when a parent task is closed.",
-                      "auto_complete"
-                    )}
-                    {renderToggle(
-                      "show-history", 
-                      "Show completed tasks", 
-                      "Keep completed tasks visible in your main views for immediate context.",
-                      "show_completed"
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "notifications" && (
-                <div className="space-y-8">
-                  <div>
-                    <h2 className="font-serif text-3xl text-ink mb-2">Notifications</h2>
-                    <p className="text-sm text-soft">Choose when and how you want to be notified.</p>
-                  </div>
-                  <div className="divide-y divide-hair">
-                    {renderToggle(
-                      "notif-email", 
-                      "Email Notifications", 
-                      "Allow Refract to send important updates and reports to your email.",
-                      "notify_email"
-                    )}
-                    {renderToggle(
-                      "notif-reminders", 
-                      "Task Reminders", 
-                      "Get notified when a task is starting or a reminder is triggered.",
-                      "notify_reminders"
-                    )}
-                    {renderToggle(
-                      "notif-due", 
-                      "Due Date Alerts", 
-                      "Early warnings for approaching deadlines and overdue items.",
-                      "notify_due_dates"
-                    )}
-                    {renderToggle(
-                      "notif-activity", 
-                      "Client Activity", 
-                      "Updates when clients interact with shared assets or sync data.",
-                      "notify_activity"
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "appearance" && (
-                <div className="space-y-8">
-                  <div>
-                    <h2 className="font-serif text-3xl text-ink mb-2">Appearance</h2>
-                    <p className="text-sm text-soft">Visual settings to make Refract more comfortable.</p>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="p-1.5 bg-cream/30 rounded-2xl flex gap-2 w-fit">
-                      <button 
-                        onClick={() => updateSetting("dark_mode", false)}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${!settings.dark_mode ? "bg-white text-ink shadow-sm" : "text-soft hover:text-ink"}`}
-                      >
-                        Light
-                      </button>
-                      <button 
-                        onClick={() => updateSetting("dark_mode", true)}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${settings.dark_mode ? "bg-charcoal text-white shadow-sm" : "text-soft hover:text-ink"}`}
-                      >
-                        Dark
-                      </button>
-                    </div>
-
-                    <div className="divide-y divide-hair">
-                      {renderToggle(
-                        "compact-mode", 
-                        "Compact mode", 
-                        "Reduce whitespace and padding to show more information at once.",
-                        "compact_mode"
-                      )}
-                    </div>
-                    
-                    <div className="space-y-3 pt-4 border-t border-hair">
-                      <label className="text-sm font-medium text-ink">Text size</label>
-                      <div className="flex gap-4">
-                        {["small", "medium", "large"].map(size => (
-                          <button
-                            key={size}
-                            onClick={() => updateSetting("font_size", size)}
-                            className={`flex-1 py-3 rounded-xl border text-xs font-medium capitalize transition-all ${
-                              settings.font_size === size 
-                                ? "border-charcoal bg-cream/20 text-charcoal" 
-                                : "border-hair bg-white text-soft hover:border-soft"
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "workflow" && (
-                <div className="space-y-8">
-                  <div>
-                    <h2 className="font-serif text-3xl text-ink mb-2">Workflow</h2>
-                    <p className="text-sm text-soft">Optimize how tasks and pipelines behave throughout the app.</p>
+                    <h2 className="font-serif text-3xl text-ink mb-2">Account</h2>
+                    <p className="text-sm text-soft">Manage your credentials and account.</p>
                   </div>
                   <div className="space-y-6 max-w-md">
-                    <div className="space-y-3">
-                      <label className="text-sm font-medium text-ink">Default task due date</label>
-                      <Select value={settings.default_due_date} onValueChange={(v) => updateSetting("default_due_date", v)}>
-                        <SelectTrigger className="h-11 rounded-xl border-hair bg-white shadow-none">
-                          <SelectValue placeholder="Select default" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-hair shadow-xl">
-                          <SelectItem value="none">None (Open ended)</SelectItem>
-                          <SelectItem value="today">End of today</SelectItem>
-                          <SelectItem value="tomorrow">Tomorrow evening</SelectItem>
-                          <SelectItem value="next-week">Next Monday</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="text-sm font-medium text-ink">Default dashboard view</label>
-                      <div className="flex gap-2">
-                        {["today", "upcoming", "pipeline"].map(view => (
-                          <button
-                            key={view}
-                            onClick={() => updateSetting("default_view", view)}
-                            className={`px-4 py-2 rounded-full border text-[10px] uppercase font-bold tracking-widest transition-all ${
-                              settings.default_view === view 
-                                ? "bg-charcoal text-white border-charcoal" 
-                                : "bg-white text-soft border-hair hover:border-soft"
-                            }`}
-                          >
-                            {view}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "security" && (
-                <div className="space-y-8">
-                  <div>
-                    <h2 className="font-serif text-3xl text-ink mb-2">Security</h2>
-                    <p className="text-sm text-soft">Manage your credentials and active sessions.</p>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <Button variant="outline" className="w-full sm:w-auto h-11 rounded-xl border-hair bg-white hover:bg-cream text-sm">
-                        Change account password
-                      </Button>
-                      <Button 
-                        onClick={() => setLogoutConfirm(true)}
-                        variant="outline" 
-                        className="w-full sm:w-auto h-11 rounded-xl border-hair bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 text-sm"
-                      >
-                        Sign out of all devices
-                      </Button>
-                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-11 rounded-xl border-hair bg-white hover:bg-cream text-sm justify-start"
+                    >
+                      Change password
+                    </Button>
+                    <Button 
+                      onClick={() => setLogoutConfirm(true)}
+                      variant="outline" 
+                      className="w-full h-11 rounded-xl border-hair bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 text-sm justify-start"
+                    >
+                      <HugeiconsIcon icon={LogoutIcon} className="w-4 h-4 mr-2" />
+                      Sign out
+                    </Button>
 
                     <div className="pt-8 mt-4 border-t border-hair">
                       <div className="p-6 rounded-2xl border border-rose-100 bg-rose-50/30">
@@ -423,26 +246,20 @@ export default function Settings() {
               {activeTab === "data" && (
                 <div className="space-y-8">
                   <div>
-                    <h2 className="font-serif text-3xl text-ink mb-2">Data & Privacy</h2>
-                    <p className="text-sm text-soft">Export, backup, or clean your workspace records.</p>
+                    <h2 className="font-serif text-3xl text-ink mb-2">Data</h2>
+                    <p className="text-sm text-soft">Export your data.</p>
                   </div>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <button className="p-6 rounded-2xl border border-hair hover:bg-cream transition-all text-left flex flex-col gap-3 group">
-                        <HugeiconsIcon icon={Download01Icon} size={24} className="text-soft group-hover:text-ink" />
-                        <div>
-                          <div className="text-sm font-bold text-ink">Export Workspace</div>
-                          <div className="text-xs text-soft leading-relaxed">Download a full CSV of all clients, tasks, and notes.</div>
-                        </div>
-                      </button>
-                      <button className="p-6 rounded-2xl border border-hair hover:bg-rose-50/50 hover:border-rose-100 transition-all text-left flex flex-col gap-3 group">
-                        <HugeiconsIcon icon={Delete02Icon} size={24} className="text-soft group-hover:text-rose-500" />
-                        <div>
-                          <div className="text-sm font-bold text-ink">Purge Task History</div>
-                          <div className="text-xs text-soft leading-relaxed">Permanently clear all task history older than 3 months.</div>
-                        </div>
-                      </button>
-                    </div>
+                  <div className="space-y-6 max-w-md">
+                    <button 
+                      onClick={handleExportData}
+                      className="w-full p-6 rounded-2xl border border-hair hover:bg-cream transition-all text-left flex flex-col gap-3 group"
+                    >
+                      <HugeiconsIcon icon={Download01Icon} size={24} className="text-soft group-hover:text-ink" />
+                      <div>
+                        <div className="text-sm font-bold text-ink">Export all data as CSV</div>
+                        <div className="text-xs text-soft leading-relaxed">Download a full CSV of all clients, tasks, and deals.</div>
+                      </div>
+                    </button>
                   </div>
                 </div>
               )}
@@ -450,51 +267,6 @@ export default function Settings() {
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Floating Save Bar */}
-      <AnimatePresence>
-        {isDirty && showSaveBar && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-3xl"
-          >
-            <div className="bg-charcoal text-white rounded-2xl p-4 flex items-center justify-between shadow-2xl border border-white/10 backdrop-blur-xl relative">
-              <button 
-                onClick={() => setShowSaveBar(false)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-charcoal border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:border-white/30 transition-all shadow-xl"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={12} />
-              </button>
-              
-              <div className="flex items-center gap-3 ml-2">
-                <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-sm font-medium">You have unsaved changes</span>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  disabled={loading}
-                  onClick={handleDiscard}
-                  variant="ghost" 
-                  className="h-10 px-4 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all font-medium"
-                >
-                  Discard
-                </Button>
-                <Button 
-                  disabled={loading}
-                  onClick={handleSave}
-                  className="h-10 px-6 rounded-xl bg-white text-ink hover:bg-cream transition-all font-bold shadow-lg shadow-black/20"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-charcoal/30 border-t-charcoal rounded-full animate-spin" />
-                  ) : "Save Changes"}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Dialogs */}
       <Dialog open={logoutConfirm} onOpenChange={setLogoutConfirm}>
@@ -507,7 +279,7 @@ export default function Settings() {
           </DialogHeader>
           <DialogFooter className="mt-6 flex gap-3">
             <Button variant="ghost" onClick={() => setLogoutConfirm(false)} className="flex-1 rounded-full h-12 text-soft">Cancel</Button>
-            <Button onClick={() => logout(true)} className="flex-1 rounded-full h-12 bg-rose-500 hover:bg-rose-600 text-white">Sign out</Button>
+            <Button onClick={handleLogout} className="flex-1 rounded-full h-12 bg-rose-500 hover:bg-rose-600 text-white">Sign out</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -522,7 +294,7 @@ export default function Settings() {
           </DialogHeader>
           <DialogFooter className="mt-6 flex gap-3">
             <Button variant="ghost" onClick={() => setDeleteConfirm(false)} className="flex-1 rounded-full h-12 text-soft">Go back</Button>
-            <Button className="flex-1 rounded-full h-12 bg-rose-600 hover:bg-rose-700 text-white">Delete forever</Button>
+            <Button onClick={handleDeleteAccount} className="flex-1 rounded-full h-12 bg-rose-600 hover:bg-rose-700 text-white">Delete forever</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

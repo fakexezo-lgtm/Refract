@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { pickAvatarColor } from "@/lib/constants";
@@ -25,15 +24,20 @@ export default function QuickAddClientDialog({ open, onOpenChange }) {
     e.preventDefault();
     if (!name.trim()) return;
     setBusy(true);
-    const client = await base44.entities.Client.create({
-      name: name.trim(), 
-      company: company.trim(), 
-      email: email.trim(), 
-      phone: phone.trim(),
-      status,
-      avatar_color: pickAvatarColor(name),
-      last_contacted_at: new Date().toISOString(),
+    const response = await fetch('/api/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(), 
+        company: company.trim(), 
+        email: email.trim(), 
+        phone: phone.trim(),
+        status,
+        avatar_color: pickAvatarColor(name),
+        last_contacted_at: new Date().toISOString(),
+      })
     });
+    const client = await response.json();
     await logActivity({ client_id: client.id, type: "client_created", content: `Added ${client.name}` });
     qc.invalidateQueries({ queryKey: ["clients"] });
     qc.invalidateQueries({ queryKey: ["activities"] });

@@ -448,14 +448,7 @@ export default function Tasks() {
                         <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={-1} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />
                       ))}
                     </div>
-                    {buckets.completed.length > 5 && (
-                      <button
-                        onClick={() => navigate('/app/tasks/history')}
-                        className="mt-3 text-sm text-soft hover:text-ink transition-colors"
-                      >
-                        View all history ({buckets.completed.length})
-                      </button>
-                    )}
+                    
                   </motion.div>
                 )}
               </AnimatePresence>

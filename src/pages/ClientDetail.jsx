@@ -47,7 +47,14 @@ export default function ClientDetail() {
   }, [tasks]);
 
   if (isLoading) {
-    return <div className="h-64 rounded-2xl bg-white border border-hair animate-pulse" />;
+    return (
+      <div className="pt-6 md:pt-10 pb-20 animate-pulse space-y-6">
+        <div className="h-5 w-24 rounded-full bg-whisper" />
+        <div className="h-48 rounded-[1.5rem] bg-white border border-hair" />
+        <div className="h-12 w-80 rounded-full bg-whisper" />
+        <div className="h-64 rounded-[1.5rem] bg-white border border-hair" />
+      </div>
+    );
   }
   if (!client) {
     return (
@@ -75,38 +82,78 @@ export default function ClientDetail() {
     setNoteOpen(true);
   };
 
+  const activeTasks = tasks.filter(t => !t.completed).length;
+
   return (
     <div className="pb-20">
       <Tabs defaultValue="timeline" className="w-full">
         <ClientHeader
           client={client}
-          nextTask={nextTask}
           onStatusChange={onStatusChange}
           onEdit={() => setEditClientOpen(true)}
           tabs={
             <div className="w-full overflow-x-auto scrollbar-hide -mx-5 px-5 md:mx-0 md:px-0">
-              <TabsList className="inline-flex items-center gap-1 p-1 rounded-full bg-white border border-hair w-max">
-                <TabsTrigger value="timeline" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Timeline</TabsTrigger>
-                <TabsTrigger value="tasks" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Tasks ({tasks.filter(t => !t.completed).length})</TabsTrigger>
-                <TabsTrigger value="deals" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Deals ({deals.length})</TabsTrigger>
-                <TabsTrigger value="notes" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Notes ({notes.length})</TabsTrigger>
+              <TabsList className="inline-flex items-center h-auto p-0 rounded-none bg-transparent border-b border-hair/60 w-full md:w-auto">
+                <TabsTrigger 
+                  value="timeline" 
+                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                >
+                  Timeline
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="tasks" 
+                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                >
+                  Tasks
+                  {activeTasks > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-whisper text-[10px] font-bold text-ink">{activeTasks}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="deals" 
+                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                >
+                  Deals
+                  {deals.length > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-whisper text-[10px] font-bold text-ink">{deals.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="notes" 
+                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                >
+                  Notes
+                </TabsTrigger>
               </TabsList>
             </div>
           }
         />
 
-        <div className="mt-6 md:mt-10 max-w-4xl">
+        {/* ─── Tab Content ─── */}
+        <div className="mt-8 md:mt-10">
+          {/* Activity Feed Card */}
           <TabsContent value="timeline" className="mt-0 focus-visible:outline-none">
-            <Timeline activities={activities} onAddNote={openAddNote} />
+            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+              <Timeline activities={activities} onAddNote={openAddNote} />
+            </div>
           </TabsContent>
+
           <TabsContent value="tasks" className="mt-0 focus-visible:outline-none">
-            <ClientTasks tasks={tasks} client={client} onAdd={() => setTaskOpen(true)} />
+            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+              <ClientTasks tasks={tasks} client={client} onAdd={() => setTaskOpen(true)} />
+            </div>
           </TabsContent>
+
           <TabsContent value="deals" className="mt-0 focus-visible:outline-none">
-            <ClientDeals deals={deals} client={client} onAdd={() => setDealOpen(true)} />
+            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+              <ClientDeals deals={deals} client={client} onAdd={() => setDealOpen(true)} />
+            </div>
           </TabsContent>
+
           <TabsContent value="notes" className="mt-0 focus-visible:outline-none">
-            <ClientNotes notes={notes} client={client} onAdd={openAddNote} onEdit={openEditNote} />
+            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+              <ClientNotes notes={notes} client={client} onAdd={openAddNote} onEdit={openEditNote} />
+            </div>
           </TabsContent>
         </div>
       </Tabs>

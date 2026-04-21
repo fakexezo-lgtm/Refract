@@ -16,9 +16,7 @@ React 18 + Vite + Tailwind CSS + TanStack Query
 └── Hugeicons (icons)
 ```
 
-**Authentication:** Base44 Auth, requires user registration
-**Data Layer:** TanStack Query + Base44 entities (Client, Task, Deal, Activity)
-**Routing:** React Router DOM v6
+
 
 ## 3. Screen Inventory
 
@@ -95,8 +93,8 @@ React 18 + Vite + Tailwind CSS + TanStack Query
 | Token | Value | Usage |
 |-------|-------|-------|
 | `ink` | #111111 | Headings, primary text |
-| `charcoal` | #1f1f1f | Sidebar, buttons, active states |
-| `cream` | #f6f7ed | Empty states, highlights |
+| `charcoal` | #1f1f1f | |
+| `cream` | #f6f7ed |
 | `whisper` | #f4f4f4 | Page backgrounds |
 | `soft` | #666666 | Secondary text, metadata |
 | `success` | hsl(140 25% 40%) | Success states |
@@ -237,30 +235,6 @@ Uses Tailwind spacing scale (0-96, plus variants).
 | Command | `command.jsx` | Search palette |
 | Toast/Toaster | `toast.jsx`, `toaster.jsx` | Notifications |
 
-### Custom Components
-
-| Component | File | Context |
-|----------|------|---------|
-| Layout | `Layout.jsx` | Main app shell with sidebar |
-| AuthGate | `AuthGate.jsx` | Route protection |
-| ProtectedRoute | `ProtectedRoute.jsx` | Auth state check |
-| EmptyState | `EmptyState.jsx` | Empty list states |
-| TaskRow | `TaskRow.jsx` | Dashboard/task list items |
-| ClientRow | `ClientRow.jsx` | Client list rows |
-| PipelineSnapshot | `PipelineSnapshot.jsx` | Dashboard pipeline preview |
-| ActivityFeed | `ActivityFeed.jsx` | Dashboard activity |
-| ClientHeader | `ClientHeader.jsx` | Client detail header |
-| Timeline | `Timeline.jsx` | Client activity timeline |
-| ClientTasks | `ClientTasks.jsx` | Client task section |
-| ClientDeals | `ClientDeals.jsx` | Client deal section |
-| StageBadge | `StageBadge.jsx` | Pipeline stage indicator |
-| StatusBadge | `StatusBadge.jsx` | Client status indicator |
-| Avatar (custom) | `Avatar.jsx` | Client initials with color |
-| QuickAddClientDialog | `QuickAddClientDialog.jsx` | Add client form |
-| AddNoteDialog | `AddNoteDialog.jsx` | Add timeline note |
-| AddTaskDialog | `AddTaskDialog.jsx` | Add task to client |
-| AddDealDialog | `AddDealDialog.jsx` | Add deal to client |
-| CommandPalette | `CommandPalette.jsx` | Global search |
 
 ## 12. Component Rules and Usage Patterns
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Note02Icon, CheckmarkCircle02Icon, DashboardSquareIcon, UserIcon, CircleIcon, CheckmarkSquareIcon } from "@hugeicons/core-free-icons";
+import { Note02Icon, CheckmarkCircle02Icon, DashboardSquareIcon, UserIcon, CircleIcon, CheckmarkSquareIcon, FilterIcon } from "@hugeicons/core-free-icons";
 import { timeAgo, timelineGroup } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
@@ -28,20 +28,21 @@ const COLORS = {
 };
 
 const LABELS = {
-  note: "Note",
-  task_created: "Task added",
-  task_completed: "Task completed",
-  deal_created: "Deal added",
-  deal_stage_changed: "Stage changed",
-  client_created: "Client added",
+  note: "Note Added",
+  task_created: "Task Created",
+  task_completed: "Task Completed",
+  deal_created: "Deal Created",
+  deal_stage_changed: "Deal Stage Updated",
+  client_created: "Client Added",
 };
 
 export default function Timeline({ activities = [], onAddNote }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [filter, setFilter] = React.useState("all");
 
   if (activities.length === 0) {
     return (
-      <div className="rounded-2xl bg-cream border border-hair p-8 text-center">
+      <div className="text-center py-6">
         <EmptyState
           icon={Note02Icon}
           title="Nothing here yet."
@@ -84,82 +85,105 @@ export default function Timeline({ activities = [], onAddNote }) {
   };
 
   const processedActivities = processActivities(activities);
-  const visibleActivities = isExpanded ? processedActivities : processedActivities.slice(0, 5);
+  
+  // Filter activities
+  const filteredActivities = filter === "all" 
+    ? processedActivities 
+    : processedActivities.filter(a => a.type === filter);
 
-  const groups = {};
-  visibleActivities.forEach(a => {
-    const g = timelineGroup(a.created_at);
-    if (!groups[g]) groups[g] = [];
-    groups[g].push(a);
-  });
-  const order = ["Today", "Yesterday", "This week", "Earlier"];
+  const visibleActivities = isExpanded ? filteredActivities : filteredActivities.slice(0, 5);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between px-1">
-        <h3 className="font-serif text-2xl text-ink tracking-tight">Recent Activity</h3>
-        {processedActivities.length > 5 && (
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-xs font-medium text-soft hover:text-charcoal px-3 py-1 rounded-full border border-hair/60 bg-white/80 transition-all"
-          >
-            {isExpanded ? "Show less" : `View full history (${processedActivities.length})`}
+    <div className="space-y-6">
+      {/* Header Row */}
+      <div className="flex items-center justify-between">
+        <h3 className="font-serif text-2xl text-ink tracking-tight">Activity Feed</h3>
+        <div className="flex items-center gap-2">
+          {processedActivities.length > 5 && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs font-medium text-soft hover:text-charcoal px-3 py-1.5 rounded-full border border-hair/60 bg-whisper/80 hover:bg-cream transition-all"
+            >
+              {isExpanded ? "Show less" : `View all (${processedActivities.length})`}
+            </button>
+          )}
+          <button className="inline-flex items-center gap-1.5 text-xs font-medium text-soft hover:text-ink px-3 py-1.5 rounded-full border border-hair/60 bg-whisper/80 hover:bg-cream transition-all">
+            <HugeiconsIcon icon={FilterIcon} className="w-3.5 h-3.5" />
+            Filter
           </button>
-        )}
+        </div>
       </div>
 
+      {/* Activity Timeline */}
       <div className="relative">
         {/* Timeline main vertical axis */}
         <div className="absolute left-[19px] top-4 bottom-4 w-px bg-hair/20" />
 
-        <div className="space-y-10">
-          {order.filter(g => groups[g]).map(group => (
-            <div key={group} className="relative">
-              <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-soft/40 mb-8 pl-12">{group}</div>
-              <div className="space-y-10">
-                <AnimatePresence initial={false}>
-                  {groups[group].map((a, i) => {
-                    const IconComponent = ICONS[a.type] || CircleIcon;
-                    const colorClass = COLORS[a.type] || COLORS.default;
-                    return (
-                      <motion.div
-                        key={a.id}
-                        layout
-                        initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
-                        className="relative pl-12 group"
-                      >
-                        {/* The logic for the marker bubble */}
-                        <div className={cn(
-                          "absolute left-0 top-0 w-9 h-9 rounded-2xl border flex items-center justify-center z-10 transition-transform group-hover:scale-105",
-                          colorClass
-                        )}>
-                          <HugeiconsIcon icon={IconComponent} className="w-4 h-4" strokeWidth={1.75} />
-                        </div>
+        <div className="space-y-8">
+          <AnimatePresence initial={false}>
+            {visibleActivities.map((a) => {
+              const IconComponent = ICONS[a.type] || CircleIcon;
+              const colorClass = COLORS[a.type] || COLORS.default;
+              const label = LABELS[a.type] || "Activity";
+              
+              return (
+                <motion.div
+                  key={a.id}
+                  layout
+                  initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+                  className="relative pl-14 group"
+                >
+                  {/* Icon Marker */}
+                  <div className={cn(
+                    "absolute left-0 top-0 w-10 h-10 rounded-2xl border flex items-center justify-center z-10 transition-transform group-hover:scale-105",
+                    colorClass
+                  )}>
+                    <HugeiconsIcon icon={IconComponent} className="w-4 h-4" strokeWidth={1.75} />
+                  </div>
 
-                        <div className="flex flex-col gap-1.5 pt-0.5">
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-soft/50">
-                              {LABELS[a.type] || "Activity"}
+                  <div className="flex flex-col gap-1.5 pt-0.5">
+                    {/* Activity Label + Time */}
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-sm font-semibold text-ink">
+                        {label}
+                      </span>
+                      <span className="text-xs font-medium text-soft/50 tabular-nums whitespace-nowrap">
+                        {timeAgo(a.created_at)}
+                      </span>
+                    </div>
+
+                    {/* Content */}
+                    {a.type === "note" ? (
+                      <div className="mt-2 p-4 rounded-2xl bg-cream/60 border border-hair/40 text-sm text-ink leading-relaxed">
+                        {a.content}
+                      </div>
+                    ) : a.type === "deal_stage_changed" ? (
+                      <div className="text-sm text-soft leading-relaxed">
+                        {(() => {
+                          const parts = a.content.split(": ");
+                          const dealName = parts[0];
+                          const stages = parts[1]?.split(" → ") || [];
+                          return (
+                            <span>
+                              '{dealName}' moved from{" "}
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-whisper border border-hair text-soft">{stages[0]}</span>
+                              {" "}to{" "}
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-whisper border border-hair text-ink">{stages[1]}</span>
                             </span>
-                            <span className="text-[10px] font-medium text-soft/30 tabular-nums">
-                              {timeAgo(a.created_at)}
-                            </span>
-                          </div>
-                          <div className={cn(
-                            "text-[15px] font-medium leading-relaxed tracking-tight break-words",
-                            a.type === "deal_stage_changed" ? "text-ink font-semibold" : "text-ink"
-                          )}>
-                            {a.content}
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </div>
-          ))}
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-soft leading-relaxed">
+                        {a.content}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
     </div>

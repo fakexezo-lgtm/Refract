@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,24 +6,51 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { logActivity } from "@/lib/activity";
+import { apiRoutes } from "@/lib/apiRoutes";
+import { toast } from "sonner";
 
-export default function AddNoteDialog({ open, onOpenChange, client }) {
+export default function AddNoteDialog({ open, onOpenChange, client, note = null }) {
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { if (open) setText(""); }, [open]);
+  useEffect(() => { 
+    if (open) {
+      setText(note ? note.content : ""); 
+    }
+  }, [open, note]);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim() || !client?.id) return;
     setBusy(true);
-    await logActivity({ client_id: client.id, type: "note", content: text.trim() });
-    qc.invalidateQueries({ queryKey: ["activities"] });
-    qc.invalidateQueries({ queryKey: ["clients"] });
-    qc.invalidateQueries({ queryKey: ["client", client.id] });
-    setBusy(false);
-    onOpenChange(false);
+    
+    try {
+      if (note) {
+        await apiRoutes.updateNote(note.id, { content: text.trim() });
+        toast.success("Note updated");
+      } else {
+        const created = await apiRoutes.createNote({
+          client_id: client.id,
+          content: text.trim(),
+        });
+        await logActivity({ 
+          client_id: client.id, 
+          type: "note", 
+          content: text.trim().substring(0, 100) + (text.length > 100 ? "..." : "") 
+        }).catch(err => console.warn("Activity log failed:", err));
+        toast.success("Note added");
+      }
+      
+      qc.invalidateQueries({ queryKey: ["notes", client.id] });
+      qc.invalidateQueries({ queryKey: ["activities", client.id] });
+      onOpenChange(false);
+    } catch (err) {
+      console.error("AddNoteDialog error:", err);
+      toast.error(err?.message || "Failed to save note");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const onKey = (e) => {
@@ -33,7 +61,7 @@ export default function AddNoteDialog({ open, onOpenChange, client }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">Add note</DialogTitle>
+          <DialogTitle className="font-serif text-2xl">{note ? "Edit note" : "Add note"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="pt-2">
           <Textarea
@@ -57,4 +85,4 @@ export default function AddNoteDialog({ open, onOpenChange, client }) {
       </DialogContent>
     </Dialog>
   );
-}
+}

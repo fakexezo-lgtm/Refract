@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Note02Icon, CheckmarkCircle02Icon, TrendingUp, UserAdd01Icon, RecordIcon, CheckmarkSquareIcon } from "@hugeicons/core-free-icons";
+import { Note02Icon, CheckmarkCircle02Icon, DashboardSquareIcon, UserIcon, CircleIcon, CheckmarkSquareIcon } from "@hugeicons/core-free-icons";
 import { timeAgo, timelineGroup } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
@@ -10,10 +10,21 @@ const ICONS = {
   note: Note02Icon,
   task_created: CheckmarkSquareIcon,
   task_completed: CheckmarkCircle02Icon,
-  deal_created: TrendingUp,
-  deal_stage_changed: TrendingUp,
-  client_created: UserAdd01Icon,
-  default: RecordIcon,
+  deal_created: DashboardSquareIcon,
+  deal_stage_changed: DashboardSquareIcon,
+  client_created: UserIcon,
+  client_updated: UserIcon,
+  default: CircleIcon,
+};
+
+const COLORS = {
+  note: "bg-blue-50 text-blue-600 border-blue-100",
+  task_created: "bg-orange-50 text-orange-600 border-orange-100",
+  task_completed: "bg-green-50 text-green-600 border-green-100",
+  deal_created: "bg-purple-50 text-purple-600 border-purple-100",
+  deal_stage_changed: "bg-indigo-50 text-indigo-600 border-indigo-100",
+  client_created: "bg-ink text-white border-ink",
+  default: "bg-whisper text-soft border-hair",
 };
 
 const LABELS = {
@@ -30,7 +41,7 @@ export default function Timeline({ activities = [], onAddNote }) {
 
   if (activities.length === 0) {
     return (
-      <div className="rounded-2xl bg-cream border border-hair">
+      <div className="rounded-2xl bg-cream border border-hair p-8 text-center">
         <EmptyState
           icon={Note02Icon}
           title="Nothing here yet."
@@ -48,6 +59,7 @@ export default function Timeline({ activities = [], onAddNote }) {
     let currentDealGroup = null;
 
     list.forEach((a, i) => {
+      // Grouping consecutive stage changes for same deal
       if (a.type === "deal_stage_changed") {
         const dealId = a.metadata?.deal_id;
         const dealTitle = a.content.split(":")[0];
@@ -72,7 +84,7 @@ export default function Timeline({ activities = [], onAddNote }) {
   };
 
   const processedActivities = processActivities(activities);
-  const visibleActivities = isExpanded ? processedActivities : processedActivities.slice(0, 3);
+  const visibleActivities = isExpanded ? processedActivities : processedActivities.slice(0, 5);
 
   const groups = {};
   visibleActivities.forEach(a => {
@@ -83,60 +95,71 @@ export default function Timeline({ activities = [], onAddNote }) {
   const order = ["Today", "Yesterday", "This week", "Earlier"];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-ink">Recent History</h3>
-        {processedActivities.length > 3 && (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-sm font-black uppercase tracking-[0.15em] text-ink">Recent Activity</h3>
+        {processedActivities.length > 5 && (
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-xs font-bold text-soft hover:text-charcoal flex items-center gap-1 transition-colors"
+            className="text-xs font-bold text-soft hover:text-charcoal px-3 py-1 rounded-full border border-hair bg-white transition-all shadow-sm"
           >
-            {isExpanded ? "Show less" : `View all history (${processedActivities.length})`}
+            {isExpanded ? "Show less" : `View full history (${processedActivities.length})`}
           </button>
         )}
       </div>
 
-      <div className="space-y-8">
-        {order.filter(g => groups[g]).map(group => (
-          <div key={group} className="relative">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-soft/30 mb-4 px-1">{group}</div>
-            <div className="relative pl-7">
-              <div className="absolute left-[11.5px] top-2 bottom-0 w-px bg-hair/50" />
-              <AnimatePresence initial={false}>
-                {groups[group].map((a, i) => {
-                  const IconComponent = ICONS[a.type] || RecordIcon;
-                  return (
-                    <motion.div
-                      key={a.id}
-                      layout
-                      initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                      className="relative pb-8 last:pb-2"
-                    >
-                      <div className={cn(
-                        "absolute -left-[27.5px] top-0 w-6 h-6 rounded-full bg-white border flex items-center justify-center z-10 shadow-sm",
-                        a.type === "deal_stage_changed" ? "border-charcoal/20 bg-whisper" : "border-hair"
-                      )}>
-                        <HugeiconsIcon icon={IconComponent} className="w-3 h-3 text-ink" strokeWidth={2.5} />
-                      </div>
-                      <div className="flex items-baseline justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="text-[10px] font-black uppercase tracking-widest text-soft/40 mb-1">{LABELS[a.type] || "Activity"}</div>
+      <div className="relative">
+        {/* Timeline main vertical axis */}
+        <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-hair/30" />
+
+        <div className="space-y-12">
+          {order.filter(g => groups[g]).map(group => (
+            <div key={group} className="relative">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-soft/40 mb-8 pl-12">{group}</div>
+              <div className="space-y-10">
+                <AnimatePresence initial={false}>
+                  {groups[group].map((a, i) => {
+                    const IconComponent = ICONS[a.type] || CircleIcon;
+                    const colorClass = COLORS[a.type] || COLORS.default;
+                    return (
+                      <motion.div
+                        key={a.id}
+                        layout
+                        initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                        className="relative pl-12 group"
+                      >
+                        {/* The logic for the marker bubble */}
+                        <div className={cn(
+                          "absolute left-0 top-0 w-10 h-10 rounded-2xl border-2 flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110",
+                          colorClass
+                        )}>
+                          <HugeiconsIcon icon={IconComponent} className="w-5 h-5" strokeWidth={2.5} />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5 pt-0.5">
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-[11px] font-black uppercase tracking-[0.1em] text-soft/50">
+                              {LABELS[a.type] || "Activity"}
+                            </span>
+                            <span className="text-[10px] font-bold text-soft/30 tabular-nums">
+                              {timeAgo(a.created_at)}
+                            </span>
+                          </div>
                           <div className={cn(
-                            "text-sm leading-relaxed",
+                            "text-[15px] font-medium leading-relaxed tracking-tight break-words",
                             a.type === "deal_stage_changed" ? "text-ink font-bold" : "text-ink"
                           )}>
                             {a.content}
                           </div>
                         </div>
-                        <div className="text-[10px] font-bold text-soft/40 shrink-0 tabular-nums">{timeAgo(a.created_at)}</div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

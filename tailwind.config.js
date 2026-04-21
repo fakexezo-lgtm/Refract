@@ -33,6 +33,7 @@ module.exports = {
         cream: '#f6f7ed',
         charcoal: '#1f1f1f',
         whisper: '#f4f4f4',
+        brown: '#8c6b4f',
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',

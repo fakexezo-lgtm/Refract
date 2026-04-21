@@ -46,57 +46,89 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
 
   if (deals.length === 0) {
     return (
-      <div className="rounded-2xl bg-cream border border-hair">
-        <EmptyState icon={TrendingUp} title="No deals yet." description="Track the next opportunity with this client." actionLabel="Add deal" onAction={onAdd} compact />
+      <div className="rounded-2xl bg-cream border border-hair p-8 text-center">
+        <EmptyState 
+          icon={TrendingUp} 
+          title="No deals yet." 
+          description="Track the next opportunity with this client." 
+          actionLabel="Add deal" 
+          onAction={onAdd} 
+          compact 
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <div className="text-[11px] uppercase tracking-[0.15em] text-soft">Deals · {deals.length}</div>
-        <Button onClick={onAdd} variant="outline" size="sm" className="rounded-full h-8 bg-white border-hair">
-          <HugeiconsIcon icon={Add01Icon} className="w-3 h-3 mr-1" /> New deal
+    <div className="space-y-6">
+      <div className="flex justify-between items-center px-1">
+        <h3 className="text-sm font-black uppercase tracking-[0.15em] text-ink">Active Opportunities</h3>
+        <Button 
+          onClick={onAdd} 
+          variant="outline" 
+          size="sm" 
+          className="rounded-full h-9 bg-white border-hair shadow-sm hover:bg-whisper transition-all gap-1.5"
+        >
+          <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
+          <span className="text-xs font-bold text-ink">New deal</span>
         </Button>
       </div>
-      <AnimatePresence>
-        {deals.map(d => (
-          <motion.div
-            key={d.id}
-            layout
-            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="p-5 rounded-3xl bg-white border border-hair hover:border-ink/20 transition-all shadow-sm"
-          >
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div className="flex-1 min-w-0">
-                <div className="text-ink font-bold text-lg truncate">{d.title}</div>
-                {d.value != null && <div className="text-sm font-bold text-soft mt-0.5 tracking-tight">${d.value.toLocaleString()}</div>}
+
+      <div className="grid gap-4">
+        <AnimatePresence>
+          {deals.map(d => (
+            <motion.div
+              key={d.id}
+              layout
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="group p-6 rounded-3xl bg-white border border-hair hover:border-ink/20 transition-all shadow-sm"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="text-ink font-bold text-xl truncate tracking-tight">{d.title}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {d.value != null && (
+                      <div className="text-lg font-black text-ink tracking-tight">
+                        ${d.value.toLocaleString()}
+                      </div>
+                    )}
+                    <div className="h-4 w-px bg-hair" />
+                    <div className="text-[10px] font-black uppercase tracking-widest text-soft/60">
+                      Added {new Date(d.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Select value={d.stage} onValueChange={(v) => changeStage(d, v)}>
+                    <SelectTrigger className="w-40 h-11 rounded-2xl bg-whisper border-hair text-xs font-black uppercase tracking-widest text-ink focus:ring-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-hair bg-white">
+                      {STAGES.map(s => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs font-bold py-2.5">
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Select value={d.stage} onValueChange={(v) => changeStage(d, v)}>
-                  <SelectTrigger className="w-36 h-10 rounded-full bg-whisper border-hair text-xs font-bold text-ink">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STAGES.map(s => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {d.next_step && (
-              <div className="flex items-center gap-2 py-3 px-4 bg-cream/50 rounded-2xl border border-hair/50">
-                <div className="text-[10px] font-black uppercase tracking-[0.15em] text-soft">Next Step</div>
-                <div className="text-xs font-bold text-ink truncate">{d.next_step}</div>
-              </div>
-            )}
-            {!d.next_step && (
-              <div className="text-[10px] font-bold text-soft/50 italic px-1">No next step defined for this opportunity.</div>
-            )}
-          </motion.div>
-        ))}
-      </AnimatePresence>
+              
+              {d.next_step && (
+                <div className="mt-6 flex items-center gap-3 py-3 px-4 bg-cream/30 rounded-2xl border border-hair/40 group-hover:bg-cream/50 transition-colors">
+                  <div className="text-[9px] font-black uppercase tracking-[0.2em] text-soft/60">Next Step</div>
+                  <div className="text-sm font-bold text-ink truncate">{d.next_step}</div>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

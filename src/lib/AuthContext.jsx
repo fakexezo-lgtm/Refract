@@ -25,11 +25,26 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(mapUser(session?.user));
-      setIsLoadingAuth(false);
-    });
+    // Add a safety timeout to prevent infinite white screen if Supabase hangs
+    const safetyTimeout = setTimeout(() => {
+      if (isLoadingAuth) {
+        console.warn("Auth initialization timed out, proceeding to guest state");
+        setIsLoadingAuth(false);
+      }
+    }, 5000);
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(mapUser(session?.user));
+      })
+      .catch((err) => {
+        console.error("Auth session check failed:", err);
+      })
+      .finally(() => {
+        setIsLoadingAuth(false);
+        clearTimeout(safetyTimeout);
+      });
 
     // Listen for changes on auth state (sign in, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -38,7 +53,10 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   const login = async (email, password) => {

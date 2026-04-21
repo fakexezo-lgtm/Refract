@@ -238,7 +238,6 @@ export default function Tasks() {
   const qc = useQueryClient();
   const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
-  const [showHints, setShowHints] = useState(false);
   const [completedExpanded, setCompletedExpanded] = useState(false);
   const [sectionExpanded, setSectionExpanded] = useState({
     overdue: true,
@@ -247,12 +246,22 @@ export default function Tasks() {
   });
   const [filterClient, setFilterClient] = useState("all");
   
-  const { data: tasks = [], isLoading: tasksLoading, isError: tasksError, error: tasksErrorDetails } = useQuery({ 
+  const [persistCompleted, setPersistCompleted] = useState<Set<string>>(new Set());
+
+  const { data: tasksData = [], isLoading: tasksLoading, isError: tasksError, error: tasksErrorDetails } = useQuery({ 
     queryKey: ["tasks"], 
     queryFn: apiRoutes.getTasks,
     staleTime: 0,
     gcTime: 1000 * 60 * 30,    // 30 minutes
   });
+
+  // AUTHORITATIVE tasks list: merges server state with local "permanent" completions
+  const tasks = useMemo(() => {
+    return tasksData.map((t: any) => 
+      persistCompleted.has(t.id) ? { ...t, completed: true } : t
+    );
+  }, [tasksData, persistCompleted]);
+
   const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: apiRoutes.getClients });
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [c.id, c])), [clients]);
 
@@ -268,13 +277,40 @@ export default function Tasks() {
     };
   }, [tasks, filterClient]);
 
+  const handleComplete = async (taskId: string, title?: string, clientId?: string) => {
+    if (persistCompleted.has(taskId)) return;
+    
+    // 1. Mark as completed LOCALLY (Permanent)
+    setPersistCompleted(prev => {
+      const next = new Set(prev);
+      next.add(taskId);
+      return next;
+    });
+
+    // 2. Patch cache for immediate bucket move
+    const patch = { completed: true };
+    const apply = (old: any = []) => Array.isArray(old) ? old.map((t: any) => t.id === taskId ? { ...t, ...patch } : t) : old;
+    qc.setQueryData(["tasks"], apply);
+    if (clientId) qc.setQueryData(["tasks", clientId], apply);
+
+    // 3. Persist
+    try {
+      await apiRoutes.updateTask(taskId, { completed: true });
+      if (title) toast.success(`"${title}" completed`);
+      if (clientId) {
+        logActivity({ client_id: clientId, type: "task_completed", content: `Completed: ${title}`, metadata: {} }).catch(() => {});
+      }
+      qc.invalidateQueries({ queryKey: ["activities"] });
+    } catch (e) {
+      console.error("Completion sync failed, but keeping local completion state.", e);
+      // We don't revert here because the user wants it permanent.
+    }
+  };
+
   const total = buckets.overdue.length + buckets.today.length + buckets.upcoming.length;
   const hasActiveFilter = filterClient !== "all";
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowHints(true), 2000);
-    return () => clearTimeout(timer);
-  }, []);
+
 
   useEffect(() => {
     if (buckets.completed.length > 0) {
@@ -318,36 +354,7 @@ export default function Tasks() {
           const idx = parseInt(sessionStorage.getItem('taskIndex') || '0', 10);
           const task = allTasks[idx];
           if (task && !task.completed) {
-            const updateData = { completed: true, completed_at: new Date().toISOString() };
-
-            // Update cache directly — do NOT invalidate (would race with fresh fetch)
-            const applyToCache = (key: any, patch: any) => {
-              qc.setQueryData(key, (old: any = []) => {
-                if (!Array.isArray(old)) return old;
-                return old.map((t: any) => (t.id === task.id ? { ...t, ...patch } : t));
-              });
-            };
-
-            applyToCache(["tasks"], updateData);
-            if (task.client_id) applyToCache(["tasks", task.client_id], updateData);
-
-            apiRoutes.updateTask(task.id, updateData)
-              .then((saved: any) => {
-                const final = saved || { ...task, ...updateData };
-                applyToCache(["tasks"], final);
-                if (task.client_id) applyToCache(["tasks", task.client_id], final);
-                if (task.client_id) {
-                  logActivity({ client_id: task.client_id, type: "task_completed", content: `Completed: ${task.title}`, metadata: {} }).catch(() => {});
-                }
-                qc.invalidateQueries({ queryKey: ["activities"] });
-              })
-              .catch(() => {
-                applyToCache(["tasks"], { completed: false, completed_at: null });
-                if (task.client_id) applyToCache(["tasks", task.client_id], { completed: false, completed_at: null });
-                toast.error("Failed to complete task");
-              });
-
-            toast.success(`"${task.title}" completed`, { duration: 3000 });
+            handleComplete(task.id, task.title, task.client_id);
           }
           break;
         }
@@ -361,14 +368,13 @@ export default function Tasks() {
           break;
         case '?':
           e.preventDefault();
-          setShowHints(true);
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [buckets, qc]);
+  }, [buckets, qc, persistCompleted]);
 
   return (
     <div className="space-y-6">
@@ -485,7 +491,17 @@ export default function Tasks() {
             expanded={sectionExpanded.overdue}
             onToggle={() => setSectionExpanded((prev) => ({ ...prev, overdue: !prev.overdue }))}
           >
-            {buckets.overdue.map((t: any, idx: number) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue taskIndex={idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
+            {buckets.overdue.map((t: any, idx: number) => (
+              <TaskRow 
+                key={t.id} 
+                task={t} 
+                client={clientMap[t.client_id]} 
+                emphasizeOverdue 
+                taskIndex={idx} 
+                onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} 
+                onComplete={handleComplete}
+              />
+            ))}
           </Section>
           <Section
             icon={Calendar03Icon}
@@ -497,7 +513,16 @@ export default function Tasks() {
             expanded={sectionExpanded.today}
             onToggle={() => setSectionExpanded((prev) => ({ ...prev, today: !prev.today }))}
           >
-            {buckets.today.map((t: any, idx: number) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={buckets.overdue.length + idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
+            {buckets.today.map((t: any, idx: number) => (
+              <TaskRow 
+                key={t.id} 
+                task={t} 
+                client={clientMap[t.client_id]} 
+                taskIndex={buckets.overdue.length + idx} 
+                onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} 
+                onComplete={handleComplete}
+              />
+            ))}
           </Section>
           <Section
             icon={Timer01Icon}
@@ -509,7 +534,16 @@ export default function Tasks() {
             expanded={sectionExpanded.upcoming}
             onToggle={() => setSectionExpanded((prev) => ({ ...prev, upcoming: !prev.upcoming }))}
           >
-            {buckets.upcoming.map((t: any, idx: number) => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={buckets.overdue.length + buckets.today.length + idx} onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} />)}
+            {buckets.upcoming.map((t: any, idx: number) => (
+              <TaskRow 
+                key={t.id} 
+                task={t} 
+                client={clientMap[t.client_id]} 
+                taskIndex={buckets.overdue.length + buckets.today.length + idx} 
+                onEdit={(t) => { setEditTask(t); setAddTaskOpen(true); }} 
+                onComplete={handleComplete}
+              />
+            ))}
           </Section>
 
           <Section

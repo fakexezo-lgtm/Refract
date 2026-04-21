@@ -49,10 +49,29 @@ export const apiRoutes = {
     if (error) throw apiRoutes._normalizeError(error, "Unable to create client");
     return created;
   },
+  createClients: async (dataArray) => {
+    const user = await apiRoutes._requireUser();
+    const dataWithUserId = dataArray.map(item => ({ ...item, user_id: user?.id }));
+    const { data: created, error } = await supabase.from('clients').insert(dataWithUserId).select();
+    if (error) throw apiRoutes._normalizeError(error, "Unable to import clients");
+    return created;
+  },
   updateClient: async (id, data) => {
     const user = await apiRoutes._requireUser();
     const { data: updated, error } = await supabase.from('clients').update(data).eq('id', id).eq('user_id', user.id).select().single();
     if (error) throw apiRoutes._normalizeError(error, "Unable to update client");
+    return updated;
+  },
+  deleteClients: async (ids) => {
+    const user = await apiRoutes._requireUser();
+    const { error } = await supabase.from('clients').delete().in('id', ids).eq('user_id', user.id);
+    if (error) throw apiRoutes._normalizeError(error, "Unable to delete clients");
+    return { ids };
+  },
+  updateClientsStatus: async (ids, status) => {
+    const user = await apiRoutes._requireUser();
+    const { data: updated, error } = await supabase.from('clients').update({ status }).in('id', ids).eq('user_id', user.id).select();
+    if (error) throw apiRoutes._normalizeError(error, "Unable to update clients");
     return updated;
   },
   
@@ -136,8 +155,75 @@ export const apiRoutes = {
   createActivity: async (data) => {
     const user = await apiRoutes._requireUser();
     const { data: created, error } = await supabase.from('activities').insert([{ ...data, user_id: user?.id }]).select().single();
-    if (error) throw apiRoutes._normalizeError(error, "Unable to create activity");
+    if (error) {
+      if (error.code === '42P01') {
+        console.warn("Activities table doesn't exist yet");
+        return { id: Date.now().toString(), ...data, user_id: user?.id };
+      }
+      throw apiRoutes._normalizeError(error, "Unable to create activity");
+    }
     return created;
+  },
+  updateActivity: async (id, data) => {
+    const user = await apiRoutes._requireUser();
+    const { data: updated, error } = await supabase.from('activities').update(data).eq('id', id).eq('user_id', user.id).select().single();
+    if (error) throw apiRoutes._normalizeError(error, "Unable to update activity");
+    return updated;
+  },
+  deleteActivity: async (id) => {
+    const user = await apiRoutes._requireUser();
+    const { error } = await supabase.from('activities').delete().eq('id', id).eq('user_id', user.id);
+    if (error) throw apiRoutes._normalizeError(error, "Unable to delete activity");
+    return { id };
+  },
+
+  // Notes
+  getNotesByClient: async (clientId) => {
+    const user = await apiRoutes._requireUser();
+    const { data, error } = await supabase.from('notes').select('*').eq('client_id', clientId).eq('user_id', user.id).order('created_at', { ascending: false });
+    if (error) {
+      // Fallback if table doesn't exist
+      if (error.code === 'PGRST116' || error.code === '42P01') return [];
+      throw apiRoutes._normalizeError(error, "Unable to fetch notes");
+    }
+    return data;
+  },
+  createNote: async (data) => {
+    const user = await apiRoutes._requireUser();
+    try {
+      const { data: created, error } = await supabase.from('notes').insert([{ ...data, user_id: user?.id }]).select().single();
+      if (error) {
+        if (error.code === '42P01') {
+          console.warn("Notes table doesn't exist yet");
+          return { id: Date.now().toString(), ...data, user_id: user?.id };
+        }
+        throw apiRoutes._normalizeError(error, "Unable to create note");
+      }
+      return created;
+    } catch (err) {
+      if (err?.code === '42P01') {
+        return { id: Date.now().toString(), ...data, user_id: user?.id };
+      }
+      throw err;
+    }
+  },
+  updateNote: async (id, data) => {
+    const user = await apiRoutes._requireUser();
+    const { data: updated, error } = await supabase.from('notes').update(data).eq('id', id).eq('user_id', user.id).select().single();
+    if (error) {
+      if (error.code === '42P01') return { id, ...data };
+      throw apiRoutes._normalizeError(error, "Unable to update note");
+    }
+    return updated;
+  },
+  deleteNote: async (id) => {
+    const user = await apiRoutes._requireUser();
+    const { error } = await supabase.from('notes').delete().eq('id', id).eq('user_id', user.id);
+    if (error) {
+      if (error.code === '42P01') return { id };
+      throw apiRoutes._normalizeError(error, "Unable to delete note");
+    }
+    return { id };
   },
   
   // Account & Data

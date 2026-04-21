@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import AuthLayout from "./AuthLayout";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Mail01Icon } from "@hugeicons/core-free-icons";
-import { motion } from "framer-motion";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();

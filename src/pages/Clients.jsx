@@ -1,5 +1,4 @@
-// @ts-nocheck
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
@@ -9,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClientRow from "@/components/clients/ClientRow";
 import QuickAddClientDialog from "@/components/clients/QuickAddClientDialog";
+import NewClientChoiceDialog from "@/components/clients/NewClientChoiceDialog";
+import ImportClientsDialog from "@/components/clients/ImportClientsDialog";
+import BulkActionsBar from "@/components/clients/BulkActionsBar";
+import { Checkbox } from "@/components/ui/checkbox";
 import EmptyState from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
 import { apiRoutes } from "@/lib/apiRoutes";
@@ -24,7 +27,17 @@ export default function Clients() {
   const { user } = useAuth();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
+  const [choiceOpen, setChoiceOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+  
+  useEffect(() => {
+    setPage(1);
+  }, [filter, q]);
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients"],
@@ -60,9 +73,24 @@ export default function Clients() {
           <h1 className="font-serif text-4xl md:text-5xl text-ink">Clients</h1>
           <p className="text-soft mt-2">{clients.length} total · {clients.filter(c => c.status === "active").length} active</p>
         </div>
-        <Button onClick={() => setAddOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white h-11 px-5 self-start md:self-auto">
-          <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-1" /> New client
-        </Button>
+        <div className="flex items-center gap-3 self-start md:self-auto">
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              setIsSelectMode(!isSelectMode);
+              setSelectedIds([]);
+            }} 
+            className={cn(
+              "rounded-full px-5 h-11 border border-hair",
+              isSelectMode ? "bg-charcoal text-white hover:bg-black" : "bg-white text-soft hover:text-ink"
+            )}
+          >
+            {isSelectMode ? "Cancel selection" : "Select"}
+          </Button>
+          <Button onClick={() => setChoiceOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white h-11 px-5">
+            <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-1" /> New client
+          </Button>
+        </div>
       </div>
 
       {/* Search + filters */}
@@ -95,6 +123,22 @@ export default function Clients() {
         </div>
       </div>
 
+      {isSelectMode && filtered.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-2 bg-cream/50 rounded-xl border border-hair animate-in fade-in slide-in-from-top-2 duration-300">
+          <Checkbox 
+            id="select-all" 
+            checked={selectedIds.length === filtered.length && filtered.length > 0} 
+            onCheckedChange={(checked) => {
+              if (checked) setSelectedIds(filtered.map(c => c.id));
+              else setSelectedIds([]);
+            }}
+          />
+          <label htmlFor="select-all" className="text-sm font-medium text-ink cursor-pointer select-none">
+            Select all {filtered.length} visible clients
+          </label>
+        </div>
+      )}
+
       {/* List */}
       {isLoading ? (
         <div className="space-y-2">
@@ -108,7 +152,7 @@ export default function Clients() {
               title="No clients yet."
               description="Clients are the center of Refract. Add your first one to start building their timeline."
               actionLabel="Add your first client"
-              onAction={() => setAddOpen(true)}
+              onAction={() => setChoiceOpen(true)}
             />
           </div>
         ) : (
@@ -117,14 +161,86 @@ export default function Clients() {
           </div>
         )
       ) : (
-        <div className="grid gap-2">
-          <AnimatePresence>
-            {filtered.map(c => <ClientRow key={c.id} client={c} nextTask={nextTaskByClient[c.id]} />)}
-          </AnimatePresence>
+        <div className="space-y-6">
+          <div className="grid gap-2">
+            <AnimatePresence>
+              {filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map(c => (
+                <ClientRow 
+                  key={c.id} 
+                  client={c} 
+                  nextTask={nextTaskByClient[c.id]} 
+                  isSelectMode={isSelectMode}
+                  isSelected={selectedIds.includes(c.id)}
+                  onSelectChange={(checked) => {
+                    if (checked) setSelectedIds([...selectedIds, c.id]);
+                    else setSelectedIds(selectedIds.filter(id => id !== c.id));
+                  }}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {filtered.length > ITEMS_PER_PAGE && (
+            <div className="flex items-center justify-center gap-2 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+                className="rounded-xl border-hair h-10 px-4"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.ceil(filtered.length / ITEMS_PER_PAGE) }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={cn(
+                      "w-10 h-10 rounded-xl text-sm font-medium transition",
+                      page === i + 1 
+                        ? "bg-charcoal text-white" 
+                        : "text-soft hover:bg-cream hover:text-ink"
+                    )}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === Math.ceil(filtered.length / ITEMS_PER_PAGE)}
+                onClick={() => setPage(page + 1)}
+                className="rounded-xl border-hair h-10 px-4"
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
+      <AnimatePresence>
+        {isSelectMode && selectedIds.length > 0 && (
+          <BulkActionsBar 
+            selectedIds={selectedIds} 
+            onClear={() => {
+              setSelectedIds([]);
+              setIsSelectMode(false);
+            }} 
+          />
+        )}
+      </AnimatePresence>
+
+      <NewClientChoiceDialog 
+        open={choiceOpen} 
+        onOpenChange={setChoiceOpen} 
+        onChooseManual={() => setAddOpen(true)}
+        onChooseImport={() => setImportOpen(true)}
+      />
       <QuickAddClientDialog open={addOpen} onOpenChange={setAddOpen} />
+      <ImportClientsDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }

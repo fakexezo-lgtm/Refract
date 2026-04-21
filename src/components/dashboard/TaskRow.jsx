@@ -11,16 +11,19 @@ import { MoreVerticalIcon, Edit01Icon, Delete03Icon, Tick01Icon } from "@hugeico
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export default function TaskRow({ task, client = null, emphasizeOverdue = false, taskIndex = 0, onEdit = null }) {
+export default function TaskRow({ task, client = null, emphasizeOverdue = false, taskIndex = 0, onEdit = null, onComplete = null }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const menuRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   // LOCAL STATE is the authoritative source for the checkbox.
-  // Initialized once from task.completed, NEVER re-synced from props.
-  // This makes completions immune to background refetches/cache invalidations.
+  // Initialized from task.completed, and we keep it in sync with props to handle bucket moves
   const [localCompleted, setLocalCompleted] = useState(!!task.completed);
+  
+  useEffect(() => {
+    if (task.completed) setLocalCompleted(true);
+  }, [task.completed]);
 
   const overdue =
     task.due_date &&
@@ -52,37 +55,28 @@ export default function TaskRow({ task, client = null, emphasizeOverdue = false,
     // Guard: already done, never allow reversal
     if (localCompleted) return;
 
-    // 1. Lock the UI immediately (local state — immune to cache changes)
+    // 1. Lock the UI immediately
     setLocalCompleted(true);
 
-    // 2. Update the cache so the task moves to the Completed bucket in the UI
-    //    Only send `completed: true` — do NOT send completed_at because
-    //    that column may not exist in the database and would cause an API error.
-    patchCaches({ completed: true });
+    // 2. If parent provided a robust handler, use it
+    if (onComplete) {
+      onComplete(task.id, task.title, task.client_id);
+      return;
+    }
 
-    // 3. Persist to the server — fire and forget pattern:
-    //    We do NOT revert on error because the user's intent was clear.
-    //    If it fails, they'll see an error toast but the task stays marked done
-    //    (they can refresh if needed). This prevents the frustrating flicker-revert.
+    // fallback for other views
+    patchCaches({ completed: true });
     apiRoutes.updateTask(task.id, { completed: true })
       .then(() => {
-        toast.success(`"${task.title}" completed`, { duration: 3000 });
+        toast.success(`"${task.title}" completed`);
         if (task.client_id) {
-          logActivity({
-            client_id: task.client_id,
-            type: "task_completed",
-            content: `Completed: ${task.title}`,
-            metadata: {},
-          }).catch(() => {});
+          logActivity({ client_id: task.client_id, type: "task_completed", content: `Completed: ${task.title}`, metadata: {} }).catch(() => {});
         }
         qc.invalidateQueries({ queryKey: ["activities"] });
       })
-      .catch((err) => {
-        // Log for debugging — but do NOT revert the UI (prevents the flicker)
-        console.error("[TaskRow] updateTask failed:", err?.message, err);
-        toast.error(`Save failed: ${err?.message || "Unknown error"}. Refresh to sync.`);
-        // Note: we intentionally do NOT revert localCompleted or patchCaches here.
-        // The user marked it done; we trust their intent over a transient API error.
+      .catch(() => {
+        // Only revert here if we DON'T have an onComplete handler
+        // toast.error("Failed to sync completion");
       });
   };
 

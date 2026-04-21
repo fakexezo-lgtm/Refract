@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useMemo } from "react";
 import TaskRow from "@/components/dashboard/TaskRow";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -75,24 +76,24 @@ export default function ClientTasks({ tasks = [], client, onAdd }) {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-10">
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-sm font-black uppercase tracking-[0.15em] text-ink">Action Items</h3>
+        <h3 className="font-serif text-2xl text-ink tracking-tight">Action Items</h3>
         <Button
           onClick={onAdd}
           variant="outline"
           size="sm"
-          className="rounded-full h-9 bg-white border-hair shadow-sm hover:bg-whisper transition-all gap-1.5"
+          className="rounded-full h-9 bg-white border-hair/60 hover:bg-cream transition-all gap-1.5"
         >
           <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
-          <span className="text-xs font-bold text-ink">New task</span>
+          <span className="text-xs font-semibold text-ink">New task</span>
         </Button>
       </div>
 
-      <div className="space-y-12">
-        <Section title="Overdue" tasks={categories.overdue} client={client} color="bg-red-500" />
-        <Section title="Due Today" tasks={categories.today} client={client} color="bg-ink" />
-        <Section title="Upcoming" tasks={categories.upcoming} client={client} color="bg-hair" />
+      <div className="space-y-10">
+        <Section title="Overdue" tasks={categories.overdue} client={client} color="bg-red-400/70" />
+        <Section title="Due Today" tasks={categories.today} client={client} color="bg-ink/70" />
+        <Section title="Upcoming" tasks={categories.upcoming} client={client} color="bg-hair/60" />
 
         {categories.completed.length > 0 && (
           <div className="pt-4">
@@ -100,7 +101,7 @@ export default function ClientTasks({ tasks = [], client, onAdd }) {
               title="Completed"
               tasks={categories.completed}
               client={client}
-              color="bg-soft/30"
+              color="bg-soft/20"
             />
           </div>
         )}

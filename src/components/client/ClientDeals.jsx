@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -62,15 +63,15 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-sm font-black uppercase tracking-[0.15em] text-ink">Active Opportunities</h3>
+        <h3 className="font-serif text-2xl text-ink tracking-tight">Active Opportunities</h3>
         <Button 
           onClick={onAdd} 
           variant="outline" 
           size="sm" 
-          className="rounded-full h-9 bg-white border-hair shadow-sm hover:bg-whisper transition-all gap-1.5"
+          className="rounded-full h-9 bg-white border-hair/60 hover:bg-cream transition-all gap-1.5"
         >
           <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
-          <span className="text-xs font-bold text-ink">New deal</span>
+          <span className="text-xs font-semibold text-ink">New deal</span>
         </Button>
       </div>
 
@@ -80,24 +81,25 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
             <motion.div
               key={d.id}
               layout
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="group p-6 rounded-3xl bg-white border border-hair hover:border-ink/20 transition-all shadow-sm"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 2 }}
+              transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+              className="group p-6 rounded-3xl bg-white border border-hair/60 hover:border-ink/20 transition-all"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="text-ink font-bold text-xl truncate tracking-tight">{d.title}</div>
+                    <div className="text-ink font-semibold text-xl truncate tracking-tight">{d.title}</div>
                   </div>
                   <div className="flex items-center gap-3">
                     {d.value != null && (
-                      <div className="text-lg font-black text-ink tracking-tight">
+                      <div className="text-lg font-semibold text-ink tracking-tight">
                         ${d.value.toLocaleString()}
                       </div>
                     )}
-                    <div className="h-4 w-px bg-hair" />
-                    <div className="text-[10px] font-black uppercase tracking-widest text-soft/60">
+                    <div className="h-4 w-px bg-hair/50" />
+                    <div className="text-[10px] font-medium uppercase tracking-wide text-soft/60">
                       Added {new Date(d.created_at).toLocaleDateString()}
                     </div>
                   </div>
@@ -105,12 +107,12 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
 
                 <div className="flex items-center gap-3">
                   <Select value={d.stage} onValueChange={(v) => changeStage(d, v)}>
-                    <SelectTrigger className="w-40 h-11 rounded-2xl bg-whisper border-hair text-xs font-black uppercase tracking-widest text-ink focus:ring-0">
+                    <SelectTrigger className="w-40 h-11 rounded-2xl bg-whisper border-hair text-xs font-medium uppercase tracking-wide text-ink focus:ring-0">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-hair bg-white">
                       {STAGES.map(s => (
-                        <SelectItem key={s.id} value={s.id} className="text-xs font-bold py-2.5">
+                        <SelectItem key={s.id} value={s.id} className="text-xs font-semibold py-2.5">
                           {s.label}
                         </SelectItem>
                       ))}
@@ -121,8 +123,8 @@ export default function ClientDeals({ deals = [], client, onAdd }) {
               
               {d.next_step && (
                 <div className="mt-6 flex items-center gap-3 py-3 px-4 bg-cream/30 rounded-2xl border border-hair/40 group-hover:bg-cream/50 transition-colors">
-                  <div className="text-[9px] font-black uppercase tracking-[0.2em] text-soft/60">Next Step</div>
-                  <div className="text-sm font-bold text-ink truncate">{d.next_step}</div>
+                  <div className="text-[9px] font-medium uppercase tracking-[0.12em] text-soft/60">Next Step</div>
+                  <div className="text-sm font-medium text-ink truncate">{d.next_step}</div>
                 </div>
               )}
             </motion.div>

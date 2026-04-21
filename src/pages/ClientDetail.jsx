@@ -84,12 +84,14 @@ export default function ClientDetail() {
           onStatusChange={onStatusChange}
           onEdit={() => setEditClientOpen(true)}
           tabs={
-            <TabsList className="bg-transparent border-0 p-0 h-auto gap-1 flex-nowrap overflow-x-auto">
-              <TabsTrigger value="timeline" className="rounded-full data-[state=active]:bg-charcoal data-[state=active]:text-white px-4 md:px-5 h-9 text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">Timeline</TabsTrigger>
-              <TabsTrigger value="tasks" className="rounded-full data-[state=active]:bg-charcoal data-[state=active]:text-white px-4 md:px-5 h-9 text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">Tasks ({tasks.filter(t => !t.completed).length})</TabsTrigger>
-              <TabsTrigger value="deals" className="rounded-full data-[state=active]:bg-charcoal data-[state=active]:text-white px-4 md:px-5 h-9 text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">Deals ({deals.length})</TabsTrigger>
-              <TabsTrigger value="notes" className="rounded-full data-[state=active]:bg-charcoal data-[state=active]:text-white px-4 md:px-5 h-9 text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">Notes ({notes.length})</TabsTrigger>
-            </TabsList>
+            <div className="w-full overflow-x-auto scrollbar-hide -mx-5 px-5 md:mx-0 md:px-0">
+              <TabsList className="inline-flex items-center gap-1 p-1 rounded-full bg-white border border-hair w-max">
+                <TabsTrigger value="timeline" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Timeline</TabsTrigger>
+                <TabsTrigger value="tasks" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Tasks ({tasks.filter(t => !t.completed).length})</TabsTrigger>
+                <TabsTrigger value="deals" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Deals ({deals.length})</TabsTrigger>
+                <TabsTrigger value="notes" className="relative px-4 h-10 rounded-full text-sm font-medium transition-all data-[state=active]:bg-charcoal data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-soft hover:text-ink whitespace-nowrap">Notes ({notes.length})</TabsTrigger>
+              </TabsList>
+            </div>
           }
         />
 

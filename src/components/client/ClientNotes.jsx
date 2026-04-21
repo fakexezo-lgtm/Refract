@@ -42,15 +42,15 @@ export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-sm font-bold text-ink">Client Notes</h3>
+        <h3 className="font-serif text-2xl text-ink tracking-tight">Client Notes</h3>
         <Button 
           onClick={onAdd} 
           variant="outline" 
           size="sm" 
-          className="rounded-full h-9 bg-white border-hair shadow-sm hover:bg-whisper transition-all gap-1.5"
+          className="rounded-full h-9 bg-white border-hair/60 hover:bg-cream transition-all gap-1.5"
         >
           <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
-          <span className="text-xs font-bold text-ink">New note</span>
+          <span className="text-xs font-semibold text-ink">New note</span>
         </Button>
       </div>
 
@@ -60,13 +60,14 @@ export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
             <motion.div
               key={note.id}
               layout
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="group relative p-6 rounded-3xl bg-white border border-hair hover:border-ink/20 transition-all shadow-sm"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 2 }}
+              transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+              className="group relative p-6 rounded-3xl bg-white border border-hair/60 hover:border-ink/20 transition-all"
             >
               <div className="flex justify-between items-start gap-4 mb-3">
-                <div className="text-[10px] font-black uppercase tracking-widest text-soft/40">
+                <div className="text-[10px] font-medium uppercase tracking-wide text-soft/40">
                   {timeAgo(note.created_at)}
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -93,13 +94,13 @@ export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
               {(note.content.includes("http") || note.content.includes("- ")) && (
                 <div className="mt-4 pt-4 border-t border-hair/50 flex gap-3">
                   {note.content.includes("http") && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-soft bg-whisper px-2 py-1 rounded-full">
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-soft bg-whisper/80 px-2 py-1 rounded-full">
                       <HugeiconsIcon icon={UserIcon} className="w-3 h-3" />
                       Contains links
                     </div>
                   )}
                   {note.content.includes("- ") && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-soft bg-whisper px-2 py-1 rounded-full">
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-soft bg-whisper/80 px-2 py-1 rounded-full">
                       <HugeiconsIcon icon={CheckmarkSquareIcon} className="w-3 h-3" />
                       Contains list
                     </div>

@@ -145,7 +145,7 @@ export default function Layout() {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="lg:hidden sticky top-0 z-30 bg-charcoal text-white flex items-center justify-between px-4 h-14 border-b border-white/10">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-charcoal text-white flex items-center justify-between px-4 h-14 border-b border-white/10">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-md overflow-hidden flex items-center justify-center">
             <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
@@ -194,7 +194,7 @@ export default function Layout() {
       </AnimatePresence>
 
       {/* Main */}
-      <main className="lg:pl-64 min-h-screen">
+      <main className="lg:pl-64 pt-14 lg:pt-0 min-h-screen">
         <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-8 md:py-12">
           <Outlet />
         </div>

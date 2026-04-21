@@ -166,9 +166,9 @@ export default function Landing() {
             )}
           </div>
         </div>
-        <div className="mt-10 text-xs text-soft flex justify-between">
+        <div className="mt-10 text-xs text-soft flex justify-between items-center">
           <span>© {new Date().getFullYear()} Refract</span>
-          <span>Made with care</span>
+          <span>Designed & Built by Hamza Bukhari</span>
         </div>
       </section>
     </div>

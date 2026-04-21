@@ -94,7 +94,7 @@ export default function ClientHeader({ client, nextTask, onStatusChange, onEdit,
                     onBlur={async (e) => {
                       if (e.target.value !== nextTask.title) {
                         await base44.entities.Task.update(nextTask.id, { title: e.target.value });
-                        qc.invalidateQueries({ queryKey: ["tasks", client.id] });
+                        qc.invalidateQueries({ queryKey: ["clientFull", client.id] });
                       }
                     }}
                     onKeyDown={async (e) => {

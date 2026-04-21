@@ -27,30 +27,18 @@ export default function ClientDetail() {
   const [dealOpen, setDealOpen] = useState(false);
   const [editClientOpen, setEditClientOpen] = useState(false);
 
-  const { data: client, isLoading } = useQuery({
-    queryKey: ["client", id],
-    queryFn: () => apiRoutes.getClient(id),
+  const { data, isLoading } = useQuery({
+    queryKey: ["clientFull", id],
+    queryFn: () => apiRoutes.getClientFull(id),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
-  const { data: activities = [] } = useQuery({
-    queryKey: ["activities", id],
-    queryFn: () => apiRoutes.getActivitiesByClient(id),
-    enabled: !!id,
-  });
-  const { data: tasks = [] } = useQuery({
-    queryKey: ["tasks", id],
-    queryFn: () => apiRoutes.getTasksByClient(id),
-    enabled: !!id,
-  });
-  const { data: deals = [] } = useQuery({
-    queryKey: ["deals", id],
-    queryFn: () => apiRoutes.getDealsByClient(id),
-    enabled: !!id,
-  });
-  const { data: notes = [] } = useQuery({
-    queryKey: ["notes", id],
-    queryFn: () => apiRoutes.getNotesByClient(id),
-    enabled: !!id,
-  });
+
+  const client = data?.client;
+  const activities = data?.activities || [];
+  const tasks = data?.tasks || [];
+  const deals = data?.deals || [];
+  const notes = data?.notes || [];
 
   const nextTask = useMemo(() => {
     const open = tasks.filter(t => !t.completed && t.due_date);
@@ -71,10 +59,10 @@ export default function ClientDetail() {
   }
 
   const onStatusChange = async (status) => {
-    qc.setQueryData(["client", id], old => ({ ...(old || {}), status }));
+    qc.setQueryData(["clientFull", id], old => ({ ...(old || {}), client: { ...(old?.client || {}), status } }));
     await apiRoutes.updateClient(id, { status });
     qc.invalidateQueries({ queryKey: ["clients"] });
-    qc.invalidateQueries({ queryKey: ["client", id] });
+    qc.invalidateQueries({ queryKey: ["clientFull", id] });
   };
 
   const openAddNote = () => {

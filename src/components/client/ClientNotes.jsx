@@ -17,7 +17,7 @@ export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
     if (!window.confirm("Are you sure? This note will be gone forever.")) return;
     try {
       await apiRoutes.deleteNote(noteId);
-      qc.invalidateQueries({ queryKey: ["notes", client.id] });
+      qc.invalidateQueries({ queryKey: ["clientFull", client.id] });
       toast.success("Note deleted");
     } catch (err) {
       toast.error("Failed to delete note");

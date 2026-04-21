@@ -42,8 +42,7 @@ export default function AddNoteDialog({ open, onOpenChange, client, note = null 
         toast.success("Note added");
       }
       
-      qc.invalidateQueries({ queryKey: ["notes", client.id] });
-      qc.invalidateQueries({ queryKey: ["activities", client.id] });
+      qc.invalidateQueries({ queryKey: ["clientFull", client.id] });
       onOpenChange(false);
     } catch (err) {
       console.error("AddNoteDialog error:", err);

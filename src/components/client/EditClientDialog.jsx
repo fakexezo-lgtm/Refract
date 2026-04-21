@@ -48,8 +48,7 @@ export default function EditClientDialog({ open, onOpenChange, client }) {
         metadata: { name, company, email, status } 
       });
       
-      qc.invalidateQueries({ queryKey: ["clients"] });
-      qc.invalidateQueries({ queryKey: ["client", client.id] });
+      qc.invalidateQueries({ queryKey: ["clientFull", client.id] });
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating client:', error);

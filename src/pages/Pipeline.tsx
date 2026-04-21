@@ -155,7 +155,7 @@ const DealCard = memo(({ deal, client, onClick, isDragging }: { deal: any; clien
   );
 });
 
-function KPIItem({ label, value, icon: Icon, primary = false, context = null }: { label: string; value: string; icon: any; primary?: boolean; context?: string | null }) {
+function KPIItem({ label, value, icon: Icon, primary = false, context = null, isEmpty = false }: { label: string; value: string; icon: any; primary?: boolean; context?: string | null; isEmpty?: boolean }) {
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -163,23 +163,25 @@ function KPIItem({ label, value, icon: Icon, primary = false, context = null }: 
             transition={{ duration: 0.5, ease: EASING }}
             className={cn(
                 "group relative overflow-hidden p-6 rounded-[2rem] border transition-all duration-500",
-                primary 
-                  ? "bg-charcoal text-white border-charcoal shadow-2xl ring-1 ring-white/10" 
-                  : "bg-white text-ink border-hair shadow-sm hover:shadow-xl hover:border-charcoal/10"
+                isEmpty
+                  ? "bg-white text-ink border-[#efa36a] shadow-md"
+                  : primary 
+                    ? "bg-charcoal text-white border-charcoal shadow-2xl ring-1 ring-white/10" 
+                    : "bg-white text-ink border-hair shadow-sm hover:shadow-xl hover:border-charcoal/10"
             )}
         >
             <div className="relative z-10 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-4">
                     <div className={cn(
                         "w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110",
-                        primary ? "bg-white/10" : "bg-whisper"
+                        isEmpty ? "bg-[#efa36a]" : primary ? "bg-white/10" : "bg-whisper"
                     )}>
-                        {Icon && <HugeiconsIcon icon={Icon} size={24} className={primary ? "text-white" : "text-charcoal"} />}
+                        {Icon && <HugeiconsIcon icon={Icon} size={24} className={isEmpty ? "text-white" : primary ? "text-white" : "text-charcoal"} />}
                     </div>
                     {context && (
                       <div className={cn(
                         "px-3 py-1 rounded-full text-[0.625rem] font-black uppercase tracking-widest border transition-all",
-                        primary ? "bg-white/5 border-white/10 text-white/60" : "bg-charcoal/5 border-charcoal/10 text-soft"
+                        isEmpty ? "bg-[#efa36a] border-[#efa36a] text-white" : primary ? "bg-white/5 border-white/10 text-white/60" : "bg-charcoal/5 border-charcoal/10 text-soft"
                       )}>
                         {context}
                       </div>
@@ -188,14 +190,14 @@ function KPIItem({ label, value, icon: Icon, primary = false, context = null }: 
                 
                 <div className={cn(
                   "text-[0.6875rem] uppercase font-black tracking-[0.15em] mb-1", 
-                  primary ? "text-white/50" : "text-soft/60"
+                  isEmpty ? "text-[#efa36a]" : primary ? "text-white/50" : "text-soft/60"
                 )}>
                   {label}
                 </div>
                 
                 <div className={cn(
                   "text-3xl font-serif tracking-tight tabular-nums", 
-                  primary ? "text-white" : "text-ink"
+                  isEmpty ? "text-[#efa36a]" : primary ? "text-white" : "text-ink"
                 )}>
                   {value}
                 </div>
@@ -204,7 +206,7 @@ function KPIItem({ label, value, icon: Icon, primary = false, context = null }: 
             {/* Visual Flair */}
             <div className={cn(
               "absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-[0.03] transition-transform duration-700 group-hover:scale-150",
-              primary ? "bg-white" : "bg-charcoal"
+              isEmpty ? "bg-[#efa36a]" : primary ? "bg-white" : "bg-charcoal"
             )} />
         </motion.div>
     );
@@ -455,7 +457,8 @@ export default function Pipeline() {
             label="Live Pipe Value" 
             value={formatCurrency(metrics.totalValue)} 
             icon={Add01Icon} 
-            primary={true}
+            primary={false}
+            isEmpty={metrics.totalValue === 0}
             context={`${metrics.count} active`}
         />
         <KPIItem 

@@ -43,6 +43,24 @@ export const apiRoutes = {
     if (error) throw apiRoutes._normalizeError(error, "Unable to fetch client");
     return data;
   },
+  getClientFull: async (id) => {
+    const user = await apiRoutes._requireUser();
+    const [client, activities, tasks, deals, notes] = await Promise.all([
+      supabase.from('clients').select('*').eq('id', id).eq('user_id', user.id).single(),
+      supabase.from('activities').select('*').eq('client_id', id).eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('tasks').select('*').eq('client_id', id).eq('user_id', user.id).order('due_date', { ascending: true }),
+      supabase.from('deals').select('*').eq('client_id', id).eq('user_id', user.id),
+      supabase.from('notes').select('*').eq('client_id', id).eq('user_id', user.id).order('created_at', { ascending: false }),
+    ]);
+    if (client.error) throw apiRoutes._normalizeError(client.error, "Unable to fetch client");
+    return {
+      client: client.data,
+      activities: activities.data || [],
+      tasks: tasks.data || [],
+      deals: deals.data || [],
+      notes: notes.data || [],
+    };
+  },
   createClient: async (data) => {
     const user = await apiRoutes._requireUser();
     const { data: created, error } = await supabase.from('clients').insert([{ ...data, user_id: user?.id }]).select().single();

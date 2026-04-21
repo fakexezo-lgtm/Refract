@@ -30,9 +30,7 @@ export default function AddDealDialog({ open, onOpenChange, client }) {
         value: value ? Number(value) : undefined
       });
       await logActivity({ client_id: client.id, type: "deal_created", content: `Deal added: ${title.trim()}` });
-      qc.invalidateQueries({ queryKey: ["deals"] });
-      qc.invalidateQueries({ queryKey: ["activities"] });
-      qc.invalidateQueries({ queryKey: ["client", client.id] });
+      qc.invalidateQueries({ queryKey: ["clientFull", client.id] });
       toast.success("Deal saved");
       onOpenChange(false);
     } catch (error) {

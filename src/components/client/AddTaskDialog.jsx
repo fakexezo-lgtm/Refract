@@ -60,7 +60,7 @@ export default function AddTaskDialog({ open, onOpenChange, client: preselectedC
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["activities"] });
       if (selectedClient) {
-        qc.invalidateQueries({ queryKey: ["client", clientId] });
+        qc.invalidateQueries({ queryKey: ["clientFull", clientId] });
       }
 
       onOpenChange(false);

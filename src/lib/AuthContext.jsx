@@ -35,11 +35,19 @@ export const AuthProvider = ({ children }) => {
 
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
-        setSession(session);
-        setUser(mapUser(session?.user));
+        if (session?.user) {
+          setSession(session);
+          setUser(mapUser(session.user));
+        }
       })
-      .catch((err) => {
+      .catch(async (err) => {
         console.error("Auth session check failed:", err);
+        // If the session is invalid because the user was deleted
+        if (err.message?.includes("sub claim") || err.message?.includes("does not exist")) {
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+        }
       })
       .finally(() => {
         setIsLoadingAuth(false);
@@ -95,11 +103,26 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (error) throw error;
-      
-      // If user is returned but not session, email confirmation is required
+
+      // Ghost user check: email already registered but unconfirmed
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        const mapped = mapAuthError({ message: 'user already registered' }, 'signup');
+        setAuthError({ message: mapped.message, code: mapped.code });
+        return { success: false, error: mapped.message, code: mapped.code };
+      }
+
+      // If Supabase returned a session immediately (email confirmation is OFF),
+      // sign out to ensure the user goes through the verification step.
+      // The verify-email page will re-authenticate via verifyOtp.
+      if (data.session) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+      }
+
       return { 
         success: true, 
-        status: data.session ? "complete" : "awaiting_verification" 
+        status: data.session ? 'complete' : 'awaiting_verification',
       };
     } catch (err) {
       const mapped = mapAuthError(err, "signup");
@@ -113,15 +136,27 @@ export const AuthProvider = ({ children }) => {
   const verifyEmail = async (code, email) => {
     setIsLoadingAuth(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
+      // Supabase 6-digit email OTP codes use type 'email'
+      // 'signup' is for magic link token hashes — wrong for numeric codes
+      let result = await supabase.auth.verifyOtp({
         email,
         token: code,
-        type: 'signup'
+        type: 'email'
       });
 
-      if (error) throw error;
+      // Fallback: try 'signup' type in case project uses magic-link confirmation
+      if (result.error) {
+        result = await supabase.auth.verifyOtp({
+          email,
+          token: code,
+          type: 'signup'
+        });
+      }
+
+      if (result.error) throw result.error;
       return { success: true };
     } catch (err) {
+      console.warn('[verifyEmail error]', err);
       const mapped = mapAuthError(err, "verify_email");
       return { success: false, error: mapped.message, code: mapped.code };
     } finally {
@@ -196,12 +231,30 @@ export const AuthProvider = ({ children }) => {
 
   const updateUserMetadata = async (metadata) => {
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { data, error } = await supabase.auth.updateUser({
         data: metadata
       });
       if (error) throw error;
+      
+      // Update local user state immediately
+      if (data.user) {
+        setUser(mapUser(data.user));
+      }
+      
       return { success: true };
     } catch (err) {
+      console.error("updateUserMetadata error:", err);
+      
+      // If the user has been deleted from Supabase but still has a local session
+      if (err.message?.includes("sub claim") || err.message?.includes("does not exist")) {
+        console.warn("Session is stale (user likely deleted). Logging out...");
+        await supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+        window.location.href = "/login";
+        return { success: false, error: "Your session has expired. Please log in again." };
+      }
+      
       return { success: false, error: err.message || "Update failed" };
     }
   };

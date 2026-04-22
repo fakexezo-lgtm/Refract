@@ -83,6 +83,7 @@ export default function Login() {
       if (mode === "login") {
         navigate("/app");
       } else {
+        // Always go through email verification — never skip this step
         navigate("/verify-email", { state: { email } });
       }
     } else {

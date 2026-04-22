@@ -23,7 +23,7 @@ export default function Onboarding() {
   }, [user, isAuthenticated, navigate]);
 
   const finish = async () => {
-    if (!user) return;
+    if (!user || !workType) return;
     setBusy(true);
     
     try {
@@ -34,13 +34,14 @@ export default function Onboarding() {
       });
       
       if (result.success) {
-        // Force refresh by reloading or just navigating
-        window.location.href = "/app";
+        // The useEffect will handle the redirect once the user state is updated in AuthContext
+        navigate("/app", { replace: true });
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      alert("Failed to complete onboarding. Please check your connection and try again.");
       setBusy(false);
     }
   };

@@ -11,7 +11,6 @@ Refract is a modern, intelligence-driven CRM designed to transform static client
 - **Intelligent Task Management**: Never miss a follow-up with smart task categorization (Overdue, Today, Upcoming) and a comprehensive task history.
 - **Client Relationship Management**: Detailed client profiles including contact information, interaction history (Timeline), and linked deals/tasks.
 - **Premium UI/UX**: A state-of-the-art interface utilizing glassmorphism, smooth Framer Motion animations, and the Hugeicons Pro library for a professional aesthetic.
-- **Dark Mode Support**: Fully integrated dark mode using a curated "Obsidian" color palette for focused work.
 
 ## 🚀 Tech Stack
 

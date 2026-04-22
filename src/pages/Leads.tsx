@@ -1,7 +1,5 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
-import { GlassCard, GlassButton } from '@/components/ui/GlassComponents';
-import Modal from '@/components/ui/Modal';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Search01Icon,
@@ -30,11 +28,13 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useLeads, Lead } from '@/context/LeadContext';
 import { useHeaderActions } from '@/context/HeaderActionContext';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import ImportExportLeads from '@/components/leads/ImportExportLeads';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Enhanced Status Badge with icons
 const StatusBadge = ({ status }: { status: string }) => {
@@ -106,16 +106,16 @@ const EmptyState = ({ onAdd }: { onAdd: () => void }) => (
     animate={{ opacity: 1, y: 0 }}
     className="py-16 text-left"
   >
-    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 flex items-center justify-center mb-6 shadow-inner">
-      <HugeiconsIcon icon={UserAdd01Icon} size={40} className="text-gray-300" />
+    <div className="w-24 h-24 rounded-2xl bg-cream border border-hair flex items-center justify-center mb-6">
+      <HugeiconsIcon icon={UserAdd01Icon} size={40} className="text-soft/30" />
     </div>
-    <h3 className="text-lg font-semibold text-gray-900 mb-2">No contacts yet</h3>
-    <p className="text-sm text-gray-400 max-w-[300px] mb-6 leading-relaxed">
+    <h3 className="text-lg font-serif text-ink mb-2">No contacts yet</h3>
+    <p className="text-sm text-soft max-w-[300px] mb-6 leading-relaxed">
       Start building your contact list by adding your first lead.
     </p>
-    <GlassButton variant="primary" onClick={onAdd} className="px-6 py-2.5">
+    <Button onClick={onAdd} className="px-6 h-11 bg-charcoal text-white rounded-full hover:bg-black transition-all">
       <HugeiconsIcon icon={Add01Icon} size={16} className="mr-2" /> Add First Lead
-    </GlassButton>
+    </Button>
   </motion.div>
 );
 
@@ -260,7 +260,7 @@ export default function Leads() {
 
       {isImportOpen && <ImportExportLeads onClose={() => setIsImportOpen(false)} />}
 
-      <div className="bg-white rounded-xl border border-black/5 shadow-obsidian-1 overflow-hidden">
+      <div className="bg-white rounded-xl border border-hair overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-[#FFFFFF] border-b border-black/5">
@@ -324,23 +324,29 @@ export default function Leads() {
                       <span className="font-bold text-obsidian-black text-[14px]">{formatCurrency(lead.value)}</span>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 rounded-lg hover:bg-obsidian-nested text-obsidian-black/40 hover:text-obsidian-black transition-colors" title="View">
-                          <HugeiconsIcon icon={ViewIcon} size={14} />
+                      <div className="flex items-center justify-end gap-1">
+                        <button 
+                          className="p-2 rounded-lg hover:bg-obsidian-nested text-obsidian-black/40 hover:text-obsidian-black transition-all active:scale-90" 
+                          style={{ touchAction: 'manipulation' }}
+                          title="View"
+                        >
+                          <HugeiconsIcon icon={ViewIcon} size={16} />
                         </button>
                         <button
                           onClick={() => { setEditingLead(lead); setIsEditModalOpen(true); }}
-                          className="p-2 rounded-lg hover:bg-obsidian-nested text-obsidian-black/40 hover:text-obsidian-black transition-colors"
+                          className="p-2 rounded-lg hover:bg-obsidian-nested text-obsidian-black/40 hover:text-obsidian-black transition-all active:scale-90"
+                          style={{ touchAction: 'manipulation' }}
                           title="Edit"
                         >
-                          <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
+                          <HugeiconsIcon icon={PencilEdit01Icon} size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(lead)}
-                          className="p-2 rounded-lg hover:bg-rose-50 text-obsidian-black/40 hover:text-rose-500 transition-colors"
+                          className="p-2 rounded-lg hover:bg-rose-50 text-obsidian-black/40 hover:text-rose-500 transition-all active:scale-90"
+                          style={{ touchAction: 'manipulation' }}
                           title="Delete"
                         >
-                          <HugeiconsIcon icon={Delete02Icon} size={14} />
+                          <HugeiconsIcon icon={Delete02Icon} size={16} />
                         </button>
                       </div>
                     </td>
@@ -372,7 +378,7 @@ export default function Leads() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 px-5 py-3 bg-gray-900 text-white rounded-2xl shadow-2xl z-50"
+              className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 px-5 py-3 bg-charcoal text-white rounded-2xl z-50 border border-white/10"
             >
               <div className="flex items-center gap-3 pr-4 border-r border-white/20">
                 <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-white/20 text-[10px] font-bold">
@@ -400,159 +406,175 @@ export default function Leads() {
       </div>
 
       {/* Add Lead Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Lead">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Full Name</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2.5 rounded-lg bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-300 transition-all text-sm"
-              placeholder="e.g. John Doe"
-              value={newLead.name}
-              onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email</label>
-              <input
-                type="email"
-                className="w-full px-3 py-2.5 rounded-lg bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-300 transition-all text-sm"
-                placeholder="john@example.com"
-                value={newLead.email}
-                onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-ink">Add New Lead</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-soft uppercase tracking-wider">Full Name</label>
+              <Input
+                placeholder="e.g. John Doe"
+                value={newLead.name}
+                onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Value ($)</label>
-              <input
-                type="number"
-                className="w-full px-3 py-2.5 rounded-lg bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-300 transition-all text-sm"
-                placeholder="5000"
-                value={newLead.value}
-                onChange={(e) => setNewLead({ ...newLead, value: e.target.value })}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-soft uppercase tracking-wider">Email</label>
+                <Input
+                  type="email"
+                  placeholder="john@example.com"
+                  value={newLead.email}
+                  onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                  className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-soft uppercase tracking-wider">Value ($)</label>
+                <Input
+                  type="number"
+                  placeholder="5000"
+                  value={newLead.value}
+                  onChange={(e) => setNewLead({ ...newLead, value: e.target.value })}
+                  className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-soft uppercase tracking-wider">Company</label>
+              <Input
+                placeholder="ACME Corp"
+                value={newLead.company}
+                onChange={(e) => setNewLead({ ...newLead, company: e.target.value })}
+                className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
               />
             </div>
+            <div className="pt-4 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="rounded-full">Cancel</Button>
+              <Button onClick={handleAddLead} className="rounded-full bg-charcoal hover:bg-black text-white px-6">Create Lead</Button>
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2.5 rounded-lg bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-300 transition-all text-sm"
-              placeholder="ACME Corp"
-              value={newLead.company}
-              onChange={(e) => setNewLead({ ...newLead, company: e.target.value })}
-            />
-          </div>
-          <div className="pt-4 flex justify-end gap-2">
-            <GlassButton variant="outline" onClick={() => setIsModalOpen(false)} className="px-5 py-2">Cancel</GlassButton>
-            <GlassButton variant="primary" onClick={handleAddLead} className="px-5 py-2">Create Lead</GlassButton>
-          </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Lead Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Contact">
-        {editingLead && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">Full Name</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-xl bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black/20 text-sm transition-all shadow-sm"
-                value={editingLead.name}
-                onChange={(e) => setEditingLead({ ...editingLead, name: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">Email</label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black/20 text-sm transition-all shadow-sm"
-                  value={editingLead.email || ''}
-                  onChange={(e) => setEditingLead({ ...editingLead, email: e.target.value })}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-ink">Edit Contact</DialogTitle>
+          </DialogHeader>
+          {editingLead && (
+            <div className="space-y-4 pt-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-soft uppercase tracking-wider">Full Name</label>
+                <Input
+                  value={editingLead.name}
+                  onChange={(e) => setEditingLead({ ...editingLead, name: e.target.value })}
+                  className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">Value ($)</label>
-                <input
-                  type="number"
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black/20 text-sm transition-all shadow-sm"
-                  value={editingLead.value}
-                  onChange={(e) => setEditingLead({ ...editingLead, value: Number(e.target.value) })}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-soft uppercase tracking-wider">Email</label>
+                  <Input
+                    type="email"
+                    value={editingLead.email || ''}
+                    onChange={(e) => setEditingLead({ ...editingLead, email: e.target.value })}
+                    className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-soft uppercase tracking-wider">Value ($)</label>
+                  <Input
+                    type="number"
+                    value={editingLead.value}
+                    onChange={(e) => setEditingLead({ ...editingLead, value: Number(e.target.value) })}
+                    className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-soft uppercase tracking-wider">Company</label>
+                <Input
+                  value={editingLead.company}
+                  onChange={(e) => setEditingLead({ ...editingLead, company: e.target.value })}
+                  className="h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
                 />
               </div>
+              <div className="pt-4 flex justify-end gap-2 border-t border-hair mt-2">
+                <Button variant="ghost" onClick={() => setIsEditModalOpen(false)} className="rounded-full">Cancel</Button>
+                <Button onClick={handleUpdateLead} className="rounded-full bg-charcoal hover:bg-black text-white px-8">Save Changes</Button>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">Company</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-xl bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black/20 text-sm transition-all shadow-sm"
-                value={editingLead.company}
-                onChange={(e) => setEditingLead({ ...editingLead, company: e.target.value })}
-              />
-            </div>
-            <div className="pt-6 flex justify-end gap-3 border-t border-black/5 mt-4">
-              <GlassButton variant="outline" onClick={() => setIsEditModalOpen(false)} className="px-6 py-2.5">Cancel</GlassButton>
-              <GlassButton variant="primary" onClick={handleUpdateLead} className="px-8 py-2.5">Save Changes</GlassButton>
-            </div>
-          </div>
-        )}
-      </Modal>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Contact">
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-rose-50 rounded-2xl border border-rose-100">
-            <div className="w-12 h-12 rounded-xl bg-rose-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-rose-200">
-              <HugeiconsIcon icon={Delete02Icon} size={24} />
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-ink">Delete Contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 pt-2">
+            <div className="flex items-center gap-4 p-4 bg-red-50 rounded-2xl border border-red-100">
+              <div className="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                <HugeiconsIcon icon={Delete02Icon} size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-red-900">Are you absolutely sure?</p>
+                <p className="text-xs text-red-700/70 mt-0.5">This action cannot be undone. All data for <span className="font-bold text-red-900">{leadToDelete?.name}</span> will be permanently removed.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-rose-900">Are you absolutely sure?</p>
-              <p className="text-xs text-rose-700/70 mt-0.5">This action cannot be undone. All data for <span className="font-bold text-rose-900">{leadToDelete?.name}</span> will be permanently removed.</p>
-            </div>
-          </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <GlassButton variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="px-6 py-2.5">
-              Keep Contact
-            </GlassButton>
-            <button
-              onClick={handleConfirmDelete}
-              className="px-8 py-2.5 bg-rose-600 text-white text-sm font-semibold rounded-xl hover:bg-rose-700 transition-all active:scale-95 shadow-lg shadow-rose-100"
-            >
-              Delete Permanently
-            </button>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setIsDeleteModalOpen(false)} className="rounded-full">
+                Keep Contact
+              </Button>
+              <Button
+                onClick={handleConfirmDelete}
+                className="px-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"
+              >
+                Delete Permanently
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
       {/* Bulk Delete Confirmation Modal */}
-      <Modal isOpen={isBulkDeleteModalOpen} onClose={() => setIsBulkDeleteModalOpen(false)} title="Bulk Delete Contacts">
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-rose-50 rounded-2xl border border-rose-100">
-            <div className="w-12 h-12 rounded-xl bg-rose-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-rose-200">
-              <HugeiconsIcon icon={Delete02Icon} size={24} />
+      <Dialog open={isBulkDeleteModalOpen} onOpenChange={setIsBulkDeleteModalOpen}>
+        <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-ink">Bulk Delete Contacts</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 pt-2">
+            <div className="flex items-center gap-4 p-4 bg-red-50 rounded-2xl border border-red-100">
+              <div className="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                <HugeiconsIcon icon={Delete02Icon} size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-red-900">Delete {selectedIds.length} contacts?</p>
+                <p className="text-xs text-red-700/70 mt-0.5">This will permanently remove all selected contacts. This action cannot be undone.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-rose-900">Delete {selectedIds.length} contacts?</p>
-              <p className="text-xs text-rose-700/70 mt-0.5">This will permanently remove all selected contacts. This action cannot be undone.</p>
-            </div>
-          </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <GlassButton variant="outline" onClick={() => setIsBulkDeleteModalOpen(false)} className="px-6 py-2.5">
-              Cancel
-            </GlassButton>
-            <button
-              onClick={handleConfirmBulkDelete}
-              className="px-8 py-2.5 bg-rose-600 text-white text-sm font-semibold rounded-xl hover:bg-rose-700 transition-all active:scale-95 shadow-lg shadow-rose-100"
-            >
-              Delete {selectedIds.length} Contacts
-            </button>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setIsBulkDeleteModalOpen(false)} className="rounded-full">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmBulkDelete}
+                className="px-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"
+              >
+                Delete {selectedIds.length} Contacts
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

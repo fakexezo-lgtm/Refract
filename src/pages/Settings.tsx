@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
   UserIcon, 
-  ShieldIcon, 
-  DatabaseIcon, 
+  Shield01Icon as ShieldIcon, 
+  Database01Icon as DatabaseIcon, 
   Download01Icon, 
   Delete02Icon,
-  InformationCircleIcon,
-  LogoutIcon
+  AlertCircleIcon as InformationCircleIcon,
+  Logout01Icon as LogoutIcon
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -93,26 +93,6 @@ export default function Settings() {
     }
   };
 
-  const convertToCSV = (data, fields) => {
-    if (!data.length) return '';
-    const header = fields.join(',');
-    const rows = data.map(item => fields.map(field => {
-      const value = item[field] || '';
-      return `"${String(value).replace(/"/g, '""')}"`;
-    }).join(','));
-    return [header, ...rows].join('\n');
-  };
-
-  const downloadCSV = (csv, filename) => {
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="pb-32">
       {/* Header */}
@@ -123,14 +103,15 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-12 items-start">
         {/* Navigation - Sidebar */}
-        <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-4 lg:pb-0 sticky top-24 no-scrollbar">
+        <nav className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 lg:sticky lg:top-24 no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveTab(cat.id)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+              style={{ touchAction: 'manipulation' }}
+              className={`flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap active:scale-95 ${
                 activeTab === cat.id 
-                  ? "bg-charcoal text-white shadow-lg shadow-charcoal/10" 
+                  ? "bg-charcoal text-white shadow-md" 
                   : "text-soft hover:text-ink hover:bg-cream"
               }`}
             >
@@ -141,15 +122,8 @@ export default function Settings() {
         </nav>
 
         {/* Content Area */}
-        <div className="bg-white rounded-3xl border border-hair p-8 md:p-10 shadow-sm min-h-[500px]">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
+        <div className="bg-white rounded-3xl border border-hair p-6 md:p-10 min-h-[500px]">
+          <div key={activeTab}>
               {activeTab === "profile" && (
                 <div className="space-y-8">
                   <div>
@@ -163,6 +137,7 @@ export default function Settings() {
                         value={settings.full_name} 
                         onChange={(e) => setSettings(prev => ({ ...prev, full_name: e.target.value }))}
                         placeholder="Your name"
+                        style={{ touchAction: 'manipulation' }}
                         className="h-11 rounded-xl border-hair bg-cream/10 focus:bg-white transition-all shadow-none" 
                       />
                     </div>
@@ -179,7 +154,12 @@ export default function Settings() {
                         </div>
                       </div>
                     </div>
-                    <Button onClick={handleSave} disabled={loading} className="bg-charcoal text-white hover:bg-black rounded-xl">
+                    <Button 
+                      onClick={handleSave} 
+                      disabled={loading} 
+                      style={{ touchAction: 'manipulation' }}
+                      className="bg-charcoal text-white hover:bg-black rounded-xl px-8 h-12 active:scale-95 transition-all"
+                    >
                       {loading ? 'Saving...' : 'Save Changes'}
                     </Button>
                   </div>
@@ -195,14 +175,16 @@ export default function Settings() {
                   <div className="space-y-6 max-w-md">
                     <Button 
                       variant="outline" 
-                      className="w-full h-11 rounded-xl border-hair bg-white hover:bg-cream text-sm justify-start"
+                      style={{ touchAction: 'manipulation' }}
+                      className="w-full h-11 rounded-xl border-hair bg-white hover:bg-cream text-sm justify-start active:scale-[0.98] transition-all"
                     >
                       Change password
                     </Button>
                     <Button 
                       onClick={() => setLogoutConfirm(true)}
                       variant="outline" 
-                      className="w-full h-11 rounded-xl border-hair bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 text-sm justify-start"
+                      style={{ touchAction: 'manipulation' }}
+                      className="w-full h-11 rounded-xl border-hair bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 text-sm justify-start active:scale-[0.98] transition-all"
                     >
                       <HugeiconsIcon icon={LogoutIcon} className="w-4 h-4 mr-2" />
                       Sign out
@@ -216,7 +198,8 @@ export default function Settings() {
                         </p>
                         <Button 
                           onClick={() => setDeleteConfirm(true)}
-                          className="rounded-xl h-11 bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-200 border-none px-6"
+                          style={{ touchAction: 'manipulation' }}
+                          className="rounded-xl h-11 bg-rose-500 hover:bg-rose-600 text-white border-none px-6 active:scale-95 transition-all"
                         >
                           Delete Account
                         </Button>
@@ -233,27 +216,27 @@ export default function Settings() {
                     <p className="text-sm text-soft">Export your data.</p>
                   </div>
                   <div className="space-y-6 max-w-md">
-                    <button 
-                      onClick={handleExportData}
-                      className="w-full p-6 rounded-2xl border border-hair hover:bg-cream transition-all text-left flex flex-col gap-3 group"
-                    >
-                      <HugeiconsIcon icon={Download01Icon} size={24} className="text-soft group-hover:text-ink" />
-                      <div>
-                        <div className="text-sm font-bold text-ink">Export all data as CSV</div>
-                        <div className="text-xs text-soft leading-relaxed">Download a full CSV of all clients, tasks, and deals.</div>
-                      </div>
-                    </button>
-                  </div>
+                  <button 
+                    onClick={handleExportData}
+                    style={{ touchAction: 'manipulation' }}
+                    className="w-full p-6 rounded-2xl border border-hair hover:bg-cream transition-all text-left flex flex-col gap-3 group active:scale-[0.98]"
+                  >
+                    <HugeiconsIcon icon={Download01Icon} size={24} className="text-soft group-hover:text-ink" />
+                    <div>
+                      <div className="text-sm font-bold text-ink">Export all data as CSV</div>
+                      <div className="text-xs text-soft leading-relaxed">Download a full CSV of all clients, tasks, and deals.</div>
+                    </div>
+                  </button>
                 </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Dialogs */}
       <Dialog open={logoutConfirm} onOpenChange={setLogoutConfirm}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl !bg-white border-hair shadow-2xl">
+        <DialogContent className="sm:max-w-[425px] rounded-3xl !bg-white border-hair">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl text-ink mb-2">Sign out?</DialogTitle>
             <DialogDescription className="text-soft text-base">
@@ -261,14 +244,14 @@ export default function Settings() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex gap-3">
-            <Button variant="ghost" onClick={() => setLogoutConfirm(false)} className="flex-1 rounded-full h-12 text-soft">Cancel</Button>
-            <Button onClick={handleLogout} className="flex-1 rounded-full h-12 bg-rose-500 hover:bg-rose-600 text-white">Sign out</Button>
+            <Button variant="ghost" onClick={() => setLogoutConfirm(false)} className="flex-1 rounded-full h-12 text-soft active:scale-95 transition-all">Cancel</Button>
+            <Button onClick={handleLogout} className="flex-1 rounded-full h-12 bg-rose-500 hover:bg-rose-600 text-white active:scale-95 transition-all">Sign out</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
       <Dialog open={deleteConfirm} onOpenChange={setDeleteConfirm}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl !bg-white border-hair shadow-2xl">
+        <DialogContent className="sm:max-w-[425px] rounded-3xl !bg-white border-hair">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl text-rose-600 mb-2">Delete Account?</DialogTitle>
             <DialogDescription className="text-soft text-base">
@@ -276,11 +259,33 @@ export default function Settings() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex gap-3">
-            <Button variant="ghost" onClick={() => setDeleteConfirm(false)} className="flex-1 rounded-full h-12 text-soft">Go back</Button>
-            <Button onClick={handleDeleteAccount} className="flex-1 rounded-full h-12 bg-rose-600 hover:bg-rose-700 text-white">Delete forever</Button>
+            <Button variant="ghost" onClick={() => setDeleteConfirm(false)} className="flex-1 rounded-full h-12 text-soft active:scale-95 transition-all">Go back</Button>
+            <Button onClick={handleDeleteAccount} className="flex-1 rounded-full h-12 bg-rose-600 hover:bg-rose-700 text-white active:scale-95 transition-all">Delete forever</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
+// Helpers
+const convertToCSV = (data, fields) => {
+  if (!data.length) return '';
+  const header = fields.join(',');
+  const rows = data.map(item => fields.map(field => {
+    const value = item[field] || '';
+    return `"${String(value).replace(/"/g, '""')}"`;
+  }).join(','));
+  return [header, ...rows].join('\n');
+};
+
+const downloadCSV = (csv, filename) => {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.style.display = 'none';
+  link.href = url;
+  link.download = filename;
+  link.click();
+  window.URL.revokeObjectURL(url);
+};

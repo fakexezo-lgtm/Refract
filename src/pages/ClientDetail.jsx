@@ -10,8 +10,11 @@ import ClientDeals from "@/components/client/ClientDeals";
 import AddNoteDialog from "@/components/client/AddNoteDialog";
 import AddTaskDialog from "@/components/client/AddTaskDialog";
 import AddDealDialog from "@/components/client/AddDealDialog";
-import { parseISO } from "@/lib/format";
+import { parseISO, timeAgo } from "@/lib/format";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
 
 import ClientNotes from "@/components/client/ClientNotes";
 import EditClientDialog from "@/components/client/EditClientDialog";
@@ -85,7 +88,7 @@ export default function ClientDetail() {
   const activeTasks = tasks.filter(t => !t.completed).length;
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 max-w-[1400px] mx-auto px-5 md:px-10 py-8 md:py-12">
       <Tabs defaultValue="timeline" className="w-full">
         <ClientHeader
           client={client}
@@ -93,34 +96,34 @@ export default function ClientDetail() {
           onEdit={() => setEditClientOpen(true)}
           tabs={
             <div className="w-full overflow-x-auto scrollbar-hide -mx-5 px-5 md:mx-0 md:px-0">
-              <TabsList className="inline-flex items-center h-auto p-0 rounded-none bg-transparent border-b border-hair/60 w-full md:w-auto">
+              <TabsList className="inline-flex items-center h-auto p-0 rounded-none bg-transparent border-b border-hair w-full md:w-auto gap-2">
                 <TabsTrigger 
                   value="timeline" 
-                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                  className="relative px-6 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-charcoal data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
                 >
                   Timeline
                 </TabsTrigger>
                 <TabsTrigger 
                   value="tasks" 
-                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                  className="relative px-6 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-charcoal data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
                 >
                   Tasks
                   {activeTasks > 0 && (
-                    <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-whisper text-[10px] font-bold text-ink">{activeTasks}</span>
+                    <span className="ml-3 inline-flex items-center justify-center px-2 h-5 rounded-full bg-charcoal text-[9px] font-black text-white">{activeTasks}</span>
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="deals" 
-                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                  className="relative px-6 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-charcoal data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
                 >
                   Deals
                   {deals.length > 0 && (
-                    <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-whisper text-[10px] font-bold text-ink">{deals.length}</span>
+                    <span className="ml-3 inline-flex items-center justify-center px-2 h-5 rounded-full bg-cream border border-hair text-[9px] font-black text-ink">{deals.length}</span>
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="notes" 
-                  className="relative px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
+                  className="relative px-6 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all rounded-none border-b-2 border-transparent data-[state=active]:border-charcoal data-[state=active]:text-ink data-[state=active]:bg-transparent data-[state=active]:shadow-none text-soft hover:text-ink whitespace-nowrap bg-transparent shadow-none"
                 >
                   Notes
                 </TabsTrigger>
@@ -129,29 +132,62 @@ export default function ClientDetail() {
           }
         />
 
+        {/* ─── Next Action Callout (UX Boost) ─── */}
+        {nextTask && !nextTask.completed && (
+          <div className="mt-8 flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-2xl bg-charcoal text-white shadow-xl relative overflow-hidden group">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+               <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+            </div>
+            
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shrink-0">
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={22} className="text-white" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/50 leading-none mb-1.5">Next Momentum Step</span>
+                <h3 className="font-bold text-lg tracking-tight truncate leading-tight">{nextTask.title}</h3>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="flex flex-col items-end mr-2">
+                <span className="text-[10px] uppercase tracking-widest font-black text-white/40 leading-none mb-1">Due</span>
+                <span className="text-sm font-bold">{timeAgo(nextTask.due_date)}</span>
+              </div>
+              <Button 
+                onClick={() => setTaskOpen(true)}
+                className="rounded-xl h-11 px-6 bg-white text-charcoal hover:bg-cream transition-all font-bold shadow-lg"
+              >
+                Manage Task
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* ─── Tab Content ─── */}
-        <div className="mt-8 md:mt-10">
+        <div className="mt-10 md:mt-12">
           {/* Activity Feed Card */}
-          <TabsContent value="timeline" className="mt-0 focus-visible:outline-none">
-            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+          <TabsContent value="timeline" className="mt-0 focus-visible:outline-none focus:outline-none outline-none ring-0 border-none shadow-none">
+            <div className="bg-white rounded-2xl border border-hair p-8 md:p-10 shadow-sm min-h-[400px]">
               <Timeline activities={activities} onAddNote={openAddNote} />
             </div>
           </TabsContent>
 
-          <TabsContent value="tasks" className="mt-0 focus-visible:outline-none">
-            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+          <TabsContent value="tasks" className="mt-0 focus-visible:outline-none focus:outline-none outline-none ring-0 border-none shadow-none">
+            <div className="bg-white rounded-2xl border border-hair p-8 md:p-10 shadow-sm min-h-[400px]">
               <ClientTasks tasks={tasks} client={client} onAdd={() => setTaskOpen(true)} />
             </div>
           </TabsContent>
 
-          <TabsContent value="deals" className="mt-0 focus-visible:outline-none">
-            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+          <TabsContent value="deals" className="mt-0 focus-visible:outline-none focus:outline-none outline-none ring-0 border-none shadow-none">
+            <div className="bg-white rounded-2xl border border-hair p-8 md:p-10 shadow-sm min-h-[400px]">
               <ClientDeals deals={deals} client={client} onAdd={() => setDealOpen(true)} />
             </div>
           </TabsContent>
 
-          <TabsContent value="notes" className="mt-0 focus-visible:outline-none">
-            <div className="bg-white rounded-[1.5rem] border border-hair/60 p-8 md:p-10 shadow-sm">
+          <TabsContent value="notes" className="mt-0 focus-visible:outline-none focus:outline-none outline-none ring-0 border-none shadow-none">
+            <div className="bg-white rounded-2xl border border-hair p-8 md:p-10 shadow-sm min-h-[400px]">
               <ClientNotes notes={notes} client={client} onAdd={openAddNote} onEdit={openEditNote} />
             </div>
           </TabsContent>

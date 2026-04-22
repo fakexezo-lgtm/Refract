@@ -77,7 +77,7 @@ export default function Landing() {
           initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.15, ease: [0.2, 0.7, 0.2, 1] }}
           className="mt-16 md:mt-24 relative"
         >
-          <div className="rounded-3xl overflow-hidden border border-hair shadow-2xl shadow-black/5 bg-charcoal">
+          <div className="rounded-3xl overflow-hidden border border-hair bg-charcoal">
             <div className="grid md:grid-cols-5">
               <div className="md:col-span-2 p-8 md:p-10 bg-charcoal text-white">
                 <div className="text-[11px] uppercase tracking-[0.15em] text-white/50 mb-2">Client</div>

@@ -90,6 +90,10 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Prevent Radix UI from permanently disabling body interactions after dialog close */
+  body {
+    pointer-events: auto !important;
+  }
   .font-serif {
     font-family: var(--font-serif);
     letter-spacing: -0.02em;
@@ -98,9 +102,28 @@
     background: hsl(var(--charcoal));
     color: hsl(var(--cream));
   }
+
+  /* Mobile touch fixes — eliminate 300ms delay and ghost-click issues */
+  button, a, [role="button"], [role="menuitem"], input, select, textarea, label {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Prevent overscroll bounce on body when scrolling inside modals */
+  body.menu-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 @layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
   .bg-cream { background-color: #f6f7ed; }
   .bg-charcoal { background-color: #1f1f1f; }
   .bg-whisper { background-color: #f4f4f4; }
@@ -156,7 +179,6 @@
 
 .dragging-card {
   animation: drag-lift 0.2s ease-out;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   transform: scale(1.02);
 }
 
@@ -170,31 +192,13 @@
   animation: drop-settle 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Smooth drag transitions */
-.pipeline-card {
-  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out, background-color 0.15s ease-out;
-}
-
-.pipeline-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.pipeline-card.dragging {
-  transform: scale(1.03) rotate(1deg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  border-color: rgba(17, 17, 17, 0.4);
-  z-index: 100;
-  transition: none;
-}
-
+/* Smooth transitions */
 .pipeline-column {
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .pipeline-column.drag-over {
   background-color: #fefdf8;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 /* Card drop in animation - smooth settle without upward movement */

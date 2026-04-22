@@ -134,17 +134,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyEmail = async (code, email) => {
-    setIsLoadingAuth(true);
+    // We don't use setIsLoadingAuth(true) here because we handle local loading state in the component
     try {
-      // Supabase 6-digit email OTP codes use type 'email'
-      // 'signup' is for magic link token hashes — wrong for numeric codes
+      // Supabase email OTP codes can use type 'email' or 'signup'
+      // We try 'email' first as it is the standard for numeric/alphanumeric OTPs
       let result = await supabase.auth.verifyOtp({
         email,
         token: code,
         type: 'email'
       });
 
-      // Fallback: try 'signup' type in case project uses magic-link confirmation
+      // Fallback: try 'signup' type which is sometimes used for the initial confirmation
       if (result.error) {
         result = await supabase.auth.verifyOtp({
           email,
@@ -159,13 +159,11 @@ export const AuthProvider = ({ children }) => {
       console.warn('[verifyEmail error]', err);
       const mapped = mapAuthError(err, "verify_email");
       return { success: false, error: mapped.message, code: mapped.code };
-    } finally {
-      setIsLoadingAuth(false);
     }
   };
 
   const resendVerification = async (email) => {
-    setIsLoadingAuth(true);
+    // In-page action, no global loader
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -176,8 +174,6 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       const mapped = mapAuthError(err, "verify_email");
       return { success: false, error: mapped.message, code: mapped.code };
-    } finally {
-      setIsLoadingAuth(false);
     }
   };
 

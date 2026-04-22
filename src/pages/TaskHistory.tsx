@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRoutes } from "@/lib/apiRoutes";
@@ -29,7 +30,7 @@ function HistoryGroup({ title, tasks, clientMap }) {
               )}
             </div>
             <div className="text-xs text-soft shrink-0">
-              {task.completed_at ? shortDate(task.completed_at) : ""}
+              {shortDate(task.completed_at || task.updated_at || task.created_at)}
             </div>
           </div>
         ))}
@@ -53,23 +54,27 @@ export default function TaskHistory() {
 
     return {
       today: completed.filter(t => {
-        if (!t.completed_at) return false;
-        const d = new Date(t.completed_at);
+        const dateStr = t.completed_at || t.updated_at || t.created_at;
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
         return d >= today;
       }),
       yesterday: completed.filter(t => {
-        if (!t.completed_at) return false;
-        const d = new Date(t.completed_at);
+        const dateStr = t.completed_at || t.updated_at || t.created_at;
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
         return d >= yesterday && d < today;
       }),
       last7Days: completed.filter(t => {
-        if (!t.completed_at) return false;
-        const d = new Date(t.completed_at);
+        const dateStr = t.completed_at || t.updated_at || t.created_at;
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
         return d >= last7Days && d < yesterday;
       }),
       older: completed.filter(t => {
-        if (!t.completed_at) return false;
-        const d = new Date(t.completed_at);
+        const dateStr = t.completed_at || t.updated_at || t.created_at;
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
         return d < last7Days;
       }),
     };
@@ -78,7 +83,7 @@ export default function TaskHistory() {
   const total = groups.today.length + groups.yesterday.length + groups.last7Days.length + groups.older.length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12 pb-20">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,25 +91,27 @@ export default function TaskHistory() {
       >
         <button
           onClick={() => navigate('/app/tasks')}
-          className="flex items-center gap-1 text-sm text-soft hover:text-ink transition-colors mb-4"
+          className="flex items-center gap-1 text-sm text-soft hover:text-ink transition-colors mb-6 group"
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} className="w-4 h-4" />
-          Back to Tasks
+          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-cream group-hover:bg-charcoal group-hover:text-white transition-all">
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
+          </div>
+          <span className="ml-1 font-bold tracking-tight">Back to Tasks</span>
         </button>
         
-        <h1 className="font-serif text-4xl md:text-5xl text-ink">History</h1>
-        <p className="text-soft mt-2">{total} completed tasks</p>
+        <h1 className="font-serif text-4xl md:text-5xl text-ink tracking-tight">History</h1>
+        <p className="text-soft mt-3 font-sans leading-relaxed">Reflecting on the progress made. {total} completed tasks.</p>
       </motion.div>
 
       {total === 0 ? (
-        <div className="rounded-2xl bg-cream border border-hair p-6 text-center">
-          <p className="text-soft">No completed tasks yet.</p>
-          <Button onClick={() => navigate('/app/tasks')} variant="link" className="mt-2">
-            Go to Tasks
+        <div className="rounded-2xl bg-white border border-hair p-12 text-center shadow-sm">
+          <p className="text-soft mb-6">No completed tasks yet. Every journey begins with a single step.</p>
+          <Button onClick={() => navigate('/app/tasks')} className="rounded-full bg-charcoal hover:bg-black text-white px-8">
+            Return to tasks
           </Button>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-12">
           <HistoryGroup title="Today" tasks={groups.today} clientMap={clientMap} />
           <HistoryGroup title="Yesterday" tasks={groups.yesterday} clientMap={clientMap} />
           <HistoryGroup title="Last 7 days" tasks={groups.last7Days} clientMap={clientMap} />

@@ -1,4 +1,6 @@
-import React from "react";
+// @ts-nocheck
+// @ts-nocheck
+import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Avatar from "@/components/shared/Avatar";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -10,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { differenceInDays, parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export default function ClientRow({ client, nextTask, isSelectMode, isSelected, onSelectChange }) {
+const ClientRow = memo(({ client, nextTask, isSelectMode, isSelected, onSelectChange }) => {
   const navigate = useNavigate();
   const isStale = client.last_contacted_at && differenceInDays(new Date(), parseISO(client.last_contacted_at)) >= 5;
   
@@ -27,9 +29,10 @@ export default function ClientRow({ client, nextTask, isSelectMode, isSelected, 
       layout
       initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
       onClick={handleMainClick}
+      style={{ touchAction: "manipulation" }}
       className={cn(
         "group w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl bg-white border transition text-left",
-        isSelected ? "border-charcoal ring-1 ring-charcoal" : "border-hair hover:border-ink/30 hover:shadow-sm"
+        isSelected ? "border-charcoal ring-1 ring-charcoal" : "border-hair hover:border-ink/30"
       )}
     >
       {isSelectMode && (
@@ -63,9 +66,11 @@ export default function ClientRow({ client, nextTask, isSelectMode, isSelected, 
         </div>
       </div>
       <div className="hidden sm:flex items-center gap-3 shrink-0">
-        <StatusBadge status={client.status} />
+        <StatusBadge status={client.status} className="" />
         {!isSelectMode && <HugeiconsIcon icon={ArrowUpRight01Icon} className="w-4 h-4 text-soft group-hover:text-ink transition" />}
       </div>
     </motion.button>
   );
-}
+});
+
+export default ClientRow;

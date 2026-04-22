@@ -14,6 +14,7 @@ import Clients from '@/pages/Clients';
 import ClientDetail from '@/pages/ClientDetail';
 import Pipeline from '@/pages/Pipeline';
 import Tasks from '@/pages/Tasks';
+import TaskHistory from '@/pages/TaskHistory';
 import Settings from '@/pages/Settings';
 
 // Auth Pages
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="clients/:id" element={<ClientDetail />} />
         <Route path="pipeline" element={<Pipeline />} />
         <Route path="tasks" element={<Tasks />} />
+        <Route path="tasks/history" element={<TaskHistory />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       

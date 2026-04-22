@@ -14,7 +14,19 @@ export default function VerifyEmail() {
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [verified, setVerified] = useState(false);
+
+  // Handle countdown for resend cooldown
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // Email from route state (passed after signup) or from logged-in user
   const targetEmail = state?.email || user?.email;
@@ -77,7 +89,7 @@ export default function VerifyEmail() {
       return;
     }
     if (code.length < 6) {
-      setError("Please enter the full 6-digit code");
+      setError("Please enter the full verification code");
       return;
     }
     setLoading(true);
@@ -94,16 +106,16 @@ export default function VerifyEmail() {
   };
 
   const handleResend = async () => {
-    if (!targetEmail) {
-      setError("No email address found. Please go back and sign up again.");
-      return;
-    }
+    if (!targetEmail || resendCooldown > 0) return;
+    
     setResending(true);
     setError("");
     const result = await resendVerification(targetEmail);
     setResending(false);
+    
     if (result.success) {
       setResendSuccess(true);
+      setResendCooldown(60); // Start 60s cooldown
       setTimeout(() => setResendSuccess(false), 5000);
     } else {
       setError(result.error || "Unable to send verification email. Try again.");
@@ -113,7 +125,7 @@ export default function VerifyEmail() {
   return (
     <AuthLayout
       title="Check your email"
-      subtitle={`We sent a 6-digit verification code to`}
+      subtitle={`We sent a verification code to`}
     >
       <div className="flex flex-col items-center">
         {/* Email display */}
@@ -154,17 +166,18 @@ export default function VerifyEmail() {
             <input
               type="text"
               inputMode="numeric"
-              placeholder="000000"
+              placeholder="000 000"
               value={code}
               onChange={(e) => {
                 // Allow alphanumeric — Supabase OTPs can be numeric or alphanumeric
-                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                // Supporting up to 8 digits for projects with customized OTP length
+                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
                 setCode(val);
                 if (error) setError("");
               }}
-              className="w-full px-4 h-14 tracking-[0.6em] text-center font-mono rounded-xl bg-cream/30 border border-hair focus:bg-white focus:outline-none focus:ring-4 focus:ring-charcoal/5 focus:border-charcoal/20 transition-all text-2xl"
+              className="w-full px-4 h-14 tracking-[0.4em] text-center font-mono rounded-xl bg-cream/30 border border-hair focus:bg-white focus:outline-none focus:ring-4 focus:ring-charcoal/5 focus:border-charcoal/20 transition-all text-2xl"
               required
-              maxLength={6}
+              maxLength={8}
               autoComplete="one-time-code"
               autoFocus
             />
@@ -189,10 +202,16 @@ export default function VerifyEmail() {
             <button
               type="button"
               onClick={handleResend}
-              disabled={resending || resendSuccess}
+              disabled={resending || resendSuccess || resendCooldown > 0}
               className="text-ink font-semibold hover:underline disabled:opacity-40 transition-opacity"
             >
-              {resending ? "Sending..." : resendSuccess ? "Sent ✓" : "Resend code"}
+              {resending 
+                ? "Sending..." 
+                : resendCooldown > 0 
+                  ? `Resend in ${resendCooldown}s` 
+                  : resendSuccess 
+                    ? "Sent ✓" 
+                    : "Resend code"}
             </button>
           </p>
           <button

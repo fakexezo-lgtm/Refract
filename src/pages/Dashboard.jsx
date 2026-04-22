@@ -10,6 +10,28 @@ import EmptyState from "@/components/shared/EmptyState";
 import { parseISO, isPast } from "@/lib/format";
 import { format } from "date-fns";
 import { apiRoutes } from "@/lib/apiRoutes";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { 
+  Calendar03Icon, 
+  CheckmarkCircle01Icon, 
+  ArrowRight01Icon, 
+  Task01Icon,
+  ActivityIcon,
+  AlertCircleIcon,
+  PipelineIcon
+} from "@hugeicons/core-free-icons";
+
+import Section from "@/components/shared/Section";
+
+const DashboardHeader = ({ user, greeting }) => (
+  <div className="mb-12">
+    <div className="text-[11px] uppercase font-bold tracking-[0.2em] text-soft mb-3">{format(new Date(), "EEEE, MMMM d")}</div>
+    <h1 className="font-serif text-4xl md:text-5xl text-ink leading-[1.1] tracking-tight">
+      {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
+    </h1>
+    <p className="text-soft mt-3 text-lg font-medium opacity-80">Here's what needs your attention today.</p>
+  </div>
+);
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -25,8 +47,15 @@ export default function Dashboard() {
   const deals = dealsQuery.data ?? [];
   const activities = activitiesQuery.data ?? [];
 
-  const today = new Date(); today.setHours(0,0,0,0);
-  const isToday = (d) => d && new Date(d).toDateString() === today.toDateString();
+  const [expanded, setExpanded] = React.useState({
+    overdue: true,
+    today: true,
+    pipeline: true,
+    activity: true
+  });
+
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  const isToday = (d) => d && new Date(d).toDateString() === todayDate.toDateString();
   const isOverdue = (d) => d && isPast(parseISO(d)) && !isToday(d);
 
   const todayTasks = tasks.filter(t => !t.completed && t.due_date && isToday(t.due_date));
@@ -42,16 +71,13 @@ export default function Dashboard() {
 
   if (clientsQuery.isPending) {
     return (
-      <div className="space-y-12">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-2">{format(new Date(), "EEEE, MMMM d")}</div>
-          <h1 className="font-serif text-4xl md:text-5xl text-ink">
-            {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
-          </h1>
-          <p className="text-soft mt-2">Here's what needs your attention today.</p>
-        </div>
-        <div className="rounded-2xl bg-cream border border-hair">
-          <div className="p-10 text-center text-soft text-sm">Loading your clients...</div>
+      <div className="max-w-5xl mx-auto">
+        <DashboardHeader user={user} greeting={greeting} />
+        <div className="rounded-2xl bg-white border border-hair h-64 flex items-center justify-center shadow-sm">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-2 border-hair border-t-charcoal rounded-full animate-spin" />
+            <div className="text-soft text-sm font-medium">Loading your universe...</div>
+          </div>
         </div>
       </div>
     );
@@ -59,17 +85,11 @@ export default function Dashboard() {
 
   if (clientsQuery.isError) {
     return (
-      <div className="space-y-12">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-2">{format(new Date(), "EEEE, MMMM d")}</div>
-          <h1 className="font-serif text-4xl md:text-5xl text-ink">
-            {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
-          </h1>
-          <p className="text-soft mt-2">Here's what needs your attention today.</p>
-        </div>
-        <div className="rounded-2xl bg-cream border border-hair">
+      <div className="max-w-5xl mx-auto">
+        <DashboardHeader user={user} greeting={greeting} />
+        <div className="rounded-2xl bg-white border border-hair shadow-sm">
           <EmptyState
-            icon={null}
+            icon={AlertCircleIcon}
             title="Unable to load clients right now"
             description="Please retry in a moment."
             actionLabel="Retry"
@@ -83,18 +103,11 @@ export default function Dashboard() {
   // If there are no clients, show a single empty state instead of multiple sections
   if (clientsQuery.isSuccess && clients.length === 0) {
     return (
-      <div className="space-y-12">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-2">{format(new Date(), "EEEE, MMMM d")}</div>
-          <h1 className="font-serif text-4xl md:text-5xl text-ink">
-            {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
-          </h1>
-          <p className="text-soft mt-2">Here's what needs your attention today.</p>
-        </div>
-        
-        <div className="rounded-2xl bg-cream border border-hair">
+      <div className="max-w-5xl mx-auto">
+        <DashboardHeader user={user} greeting={greeting} />
+        <div className="rounded-2xl bg-white border border-hair shadow-sm">
           <EmptyState
-            icon={null}
+            icon={Task01Icon}
             title="Add your first client to get started"
             description="Clients are the center of Refract. Add your first one to start building their timeline."
             actionLabel="Add your first client"
@@ -106,85 +119,54 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-12">
-      {/* Header */}
-      <div>
-        <div className="text-[11px] uppercase tracking-[0.15em] text-soft mb-2">{format(new Date(), "EEEE, MMMM d")}</div>
-        <h1 className="font-serif text-4xl md:text-5xl text-ink">
-          {greeting}{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
-        </h1>
-        <p className="text-soft mt-2">Here's what needs your attention today.</p>
-      </div>
+    <div className="space-y-12 pb-20">
+      <DashboardHeader user={user} greeting={greeting} />
 
-      {/* Overdue — emphasized */}
+      {/* Overdue */}
       {overdueTasks.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 text-danger">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h2 className="font-serif text-2xl text-ink">Overdue</h2>
-              <span className="text-xs text-soft">({overdueTasks.length})</span>
-            </div>
-          </div>
-          <div className="rounded-2xl bg-[#f0e4e2]/40 border border-[#e8d4d1] p-2">
-            {overdueTasks.map(t => (
-              <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue taskIndex={t.id} onEdit={() => {}} />
-            ))}
-          </div>
-        </section>
+        <Section
+          icon={AlertCircleIcon}
+          title="Overdue"
+          count={overdueTasks.length}
+          tone="text-danger"
+          expanded={expanded.overdue}
+          onToggle={() => setExpanded(p => ({ ...p, overdue: !p.overdue }))}
+          empty="Nothing overdue. You're on top of it."
+        >
+          {overdueTasks.map(t => (
+            <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} emphasizeOverdue taskIndex={t.id} onEdit={() => {}} />
+          ))}
+        </Section>
       )}
 
       {/* Today */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 text-ink">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h2 className="font-serif text-2xl text-ink">Today</h2>
-            <span className="text-xs text-soft">({todayTasks.length})</span>
-          </div>
-        </div>
-        {todayTasks.length === 0 ? (
-          <div className="rounded-2xl bg-cream border border-hair">
-            <EmptyState
-              icon={null}
-              title="You're all clear today."
-              description="Nothing scheduled. A quiet day is a gift — or use it to reach out to a client."
-              actionLabel="Browse clients"
-              onAction={() => navigate("/app/clients")}
-              compact
-            />
-          </div>
-        ) : (
-          <div className="rounded-2xl bg-white border border-hair p-2">
-            {todayTasks.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={t.id} onEdit={() => {}} />)}
-          </div>
-        )}
-      </section>
+      <Section
+        icon={Calendar03Icon}
+        title="Today"
+        count={todayTasks.length}
+        tone="text-ink"
+        expanded={expanded.today}
+        onToggle={() => setExpanded(p => ({ ...p, today: !p.today }))}
+        empty="You're all clear today. A quiet day is a gift."
+      >
+        {todayTasks.map(t => <TaskRow key={t.id} task={t} client={clientMap[t.client_id]} taskIndex={t.id} onEdit={() => {}} />)}
+      </Section>
 
       {/* Pipeline snapshot */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 text-ink">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 012-2h10a2 2 0 012 2v10M9 17v2a2 2 0 002 2h10a2 2 0 002-2v-2M9 17h10M9 17h10M9 7h10M9 7h10" />
-              </svg>
-            </div>
+            <HugeiconsIcon icon={PipelineIcon} size={18} className="text-ink" />
             <h2 className="font-serif text-2xl text-ink">Pipeline</h2>
           </div>
-          <button onClick={() => navigate("/app/pipeline")} className="text-xs text-soft hover:text-ink flex items-center gap-1">
-            Open board <div className="w-3 h-3">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
+          <button 
+            onClick={() => navigate("/app/pipeline")} 
+            style={{ touchAction: 'manipulation' }}
+            className="text-[10px] uppercase font-bold tracking-widest text-soft hover:text-ink flex items-center gap-2 active:scale-95 transition-all group"
+          >
+            Open board 
+            <div className="w-5 h-5 flex items-center justify-center rounded-full bg-cream group-hover:bg-charcoal group-hover:text-white transition-all">
+              <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
             </div>
           </button>
         </div>
@@ -193,20 +175,16 @@ export default function Dashboard() {
 
       {/* Activity */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 text-ink">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 2m0 0l-4-4m2 2l2-2m2 2l4 4M4 12l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m6 0l2 2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-              </svg>
-            </div>
+            <HugeiconsIcon icon={ActivityIcon} size={18} className="text-ink" />
             <h2 className="font-serif text-2xl text-ink">Recent activity</h2>
           </div>
         </div>
         {activities.length === 0 ? (
-          <div className="rounded-2xl bg-cream border border-hair">
+          <div className="rounded-2xl bg-white border border-hair p-8 shadow-sm">
             <EmptyState
-              icon={null}
+              icon={ActivityIcon}
               title="No activity yet."
               description="Add your first client to start building a timeline."
               actionLabel="Add a client"
@@ -215,11 +193,11 @@ export default function Dashboard() {
             />
           </div>
         ) : (
-          <div className="rounded-2xl bg-white border border-hair p-2">
+          <div className="rounded-2xl bg-white border border-hair p-2 shadow-sm">
             <ActivityFeed activities={activities} clients={clients} />
           </div>
         )}
       </section>
     </div>
   );
-}
+}

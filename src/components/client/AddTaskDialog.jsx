@@ -7,13 +7,15 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { logActivity } from "@/lib/activity";
+import { DatePicker } from "@/components/ui/date-picker";
+import { parseDate, getLocalTimeZone, today } from "@internationalized/date";
 
 export default function AddTaskDialog({ open, onOpenChange, client: preselectedClient }) {
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: apiRoutes.getClients });
 
   const [title, setTitle] = useState("");
-  const [due, setDue] = useState("");
+  const [due, setDue] = useState(null);
   const [clientId, setClientId] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -26,9 +28,7 @@ export default function AddTaskDialog({ open, onOpenChange, client: preselectedC
     if (open) {
       setTitle("");
       setClientId(preselectedClient?.id || "");
-      const t = new Date();
-      t.setDate(t.getDate() + 1);
-      setDue(t.toISOString().slice(0, 10));
+      setDue(today(getLocalTimeZone()).add({ days: 1 }));
     }
   }, [open, preselectedClient]);
 
@@ -41,7 +41,7 @@ export default function AddTaskDialog({ open, onOpenChange, client: preselectedC
       await apiRoutes.createTask({
         client_id: clientId,
         title: title.trim(),
-        due_date: due || undefined,
+        due_date: due ? due.toString() : undefined,
         completed: false,
       });
 
@@ -110,12 +110,10 @@ export default function AddTaskDialog({ open, onOpenChange, client: preselectedC
           )}
 
           <div>
-            <label className="text-xs text-soft">Due date</label>
-            <Input
-              type="date"
+            <DatePicker 
+              label="Due date"
               value={due}
-              onChange={(e) => setDue(e.target.value)}
-              className="mt-1 h-11 rounded-lg border-hair bg-white"
+              onChange={setDue}
             />
           </div>
 

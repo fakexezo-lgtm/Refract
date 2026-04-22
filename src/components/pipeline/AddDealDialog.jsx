@@ -25,13 +25,11 @@ import {
  */
 export default function AddDealDialog({ open, onOpenChange, initialStage = "lead", clients = [], clientsLoading = false }) {
   const qc = useQueryClient();
-  const [isPending, startTransition] = useTransition();
   const [title, setTitle] = useState("");
   const [clientId, setClientId] = useState("");
   const [value, setValue] = useState("");
   const [stage, setStage] = useState(initialStage);
   const [busy, setBusy] = useState(false);
-  const [focused, setFocused] = useState(null);
 
   useEffect(() => { 
     if (open) { 
@@ -44,16 +42,9 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
 
   const isValid = title.trim() && clientId;
 
-  const handleClientChange = (val) => {
-    startTransition(() => setClientId(val));
-  };
-
   const submit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !clientId) {
-      toast.error("Please select a client and name the opportunity.");
-      return;
-    }
+    if (!title.trim() || !clientId) return;
     setBusy(true);
     
     try {
@@ -65,18 +56,7 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
             stage
         };
 
-        // Optimistic update - immediately add to cache
-        const tempId = `temp-${Date.now()}`;
-        const optimisticDeal = { ...payload, id: tempId, created_at: new Date().toISOString() };
-        
-        qc.setQueryData(["deals"], (old) => [...(old || []), optimisticDeal]);
-
         const deal = await apiRoutes.createDeal(payload);
-
-        // Replace optimistic deal with real one
-        qc.setQueryData(["deals"], (old) => 
-          (old || []).map(d => d.id === tempId ? deal : d)
-        );
 
         await logActivity({ 
             client_id: clientId, 
@@ -91,8 +71,6 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
         toast.success(`Success! "${title.trim()}" is now in your pipeline.`);
         onOpenChange(false);
     } catch (err) {
-        // Rollback on error
-        qc.invalidateQueries({ queryKey: ["deals"] });
         toast.error(err?.message || "Failed to create deal. Please try again.");
     } finally {
         setBusy(false);
@@ -101,183 +79,86 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-[2.5rem] border-none bg-white p-10 shadow-2xl overflow-hidden ring-1 ring-hair/50">
-        <DialogHeader className="mb-8">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3 mb-4"
-          >
-             <div className="w-10 h-10 rounded-2xl bg-[#efa36a]/10 flex items-center justify-center border border-[#efa36a]/20">
-                <HugeiconsIcon icon={Add01Icon} size={20} className="text-[#efa36a]" strokeWidth={3} />
-             </div>
-             <span className="text-[0.625rem] font-bold uppercase tracking-[0.25em] text-soft">New Opportunity</span>
-          </motion.div>
-          <DialogTitle className="font-serif text-4xl text-ink tracking-tight mb-2">Create Deal</DialogTitle>
-          <DialogDescription className="text-soft text-base leading-relaxed max-w-[34ch]">
-            Fill in the details to start tracking this potential business.
-          </DialogDescription>
+      <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-2xl">New deal</DialogTitle>
         </DialogHeader>
-
-        <form onSubmit={submit} className="space-y-8">
-          {/* Client Selection */}
-          <motion.div 
-            className="space-y-3"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={UserIcon} size={14} className="text-soft" />
-              <Label className="text-[0.625rem] font-bold uppercase tracking-[0.15em] text-soft">Identify Client</Label>
-            </div>
-            <Select value={clientId} onValueChange={handleClientChange}>
-              <SelectTrigger className={cn(
-                "h-14 rounded-2xl border-hair bg-whisper/20 transition-all px-5 font-bold text-ink focus:ring-4 focus:ring-charcoal/5",
-                focused === 'client' && "ring-4 ring-[#efa36a]/20 border-[#efa36a]"
-              )}>
-                <SelectValue placeholder="Which client represents this deal?" />
+        <form onSubmit={submit} className="space-y-3 pt-2">
+          <div>
+            <label className="text-xs text-soft">Client</label>
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger className="mt-1 h-11 rounded-lg border-hair bg-white">
+                <SelectValue placeholder="Select client" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-hair shadow-2xl p-2 max-h-[300px] overflow-y-auto">
+              <SelectContent>
                 {clientsLoading ? (
-                    <div className="p-6 text-center text-xs text-soft font-medium animate-pulse">Loading clients...</div>
+                    <div className="p-4 text-center text-xs text-soft">Loading...</div>
                 ) : clients.length === 0 ? (
-                    <div className="p-6 text-center">
-                      <p className="text-xs text-soft mb-3">No clients yet.</p>
-                    </div>
+                    <div className="p-4 text-center text-xs text-soft">No clients found</div>
                 ) : (
                     clients.map(c => (
-                        <SelectItem key={c.id} value={c.id} className="rounded-xl py-3 focus:bg-cream cursor-pointer">
-                          <span className="font-semibold text-sm">{c.name || c.company}</span>
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name || c.company}
                         </SelectItem>
                     ))
                 )}
               </SelectContent>
             </Select>
-          </motion.div>
+          </div>
 
-          {/* Deal Title */}
-          <motion.div 
-            className="space-y-3"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={CheckmarkSquareIcon} size={14} className="text-soft" />
-              <Label className="text-[0.625rem] font-bold uppercase tracking-[0.15em] text-soft">Deal Reference</Label>
-            </div>
+          <div>
+            <label className="text-xs text-soft">Title</label>
             <Input 
                 autoFocus 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
-                onFocus={() => setFocused('title')}
-                onBlur={() => setFocused(null)}
-                placeholder="e.g. Q4 Website Development" 
-                className={cn(
-                  "h-14 rounded-2xl border-hair bg-white px-5 font-semibold text-ink focus:ring-4 focus:ring-charcoal/5 transition-all text-base",
-                  focused === 'title' && "ring-4 ring-[#efa36a]/20 border-[#efa36a]"
-                )} 
+                placeholder="e.g. Website redesign" 
+                className="mt-1 h-11 rounded-lg border-hair bg-white" 
             />
-          </motion.div>
+          </div>
 
-          <div className="grid grid-cols-2 gap-6">
-              {/* Financial Value */}
-              <motion.div 
-                className="space-y-3"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="flex items-center gap-2">
-                  <HugeiconsIcon icon={CircleIcon} size={14} className="text-soft" />
-                  <Label className="text-[0.625rem] font-bold uppercase tracking-[0.15em] text-soft">Expected Value</Label>
-                </div>
-                <div className="relative group">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-serif text-soft/40 group-focus-within:text-charcoal pr-1 transition-colors">$</span>
+          <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-soft">Value (optional)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-soft/60">$</span>
                   <Input 
                       type="number"
                       value={value} 
                       onChange={e => setValue(e.target.value)} 
-                      onFocus={() => setFocused('value')}
-                      onBlur={() => setFocused(null)}
                       placeholder="0.00" 
-                      className={cn(
-                        "h-14 rounded-2xl border-hair bg-whisper/10 px-10 font-semibold tabular-nums text-ink text-lg focus:bg-white transition-all focus:ring-4 focus:ring-charcoal/5",
-                        focused === 'value' && "ring-4 ring-[#efa36a]/20 border-[#efa36a]"
-                      )} 
+                      className="mt-1 h-11 pl-7 rounded-lg border-hair bg-white" 
                   />
                 </div>
-              </motion.div>
+              </div>
 
-              {/* Phase Selection */}
-              <motion.div 
-                className="space-y-3"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                <div className="flex items-center gap-2">
-                  <HugeiconsIcon icon={DashboardSquareIcon} size={14} className="text-soft" />
-                  <Label className="text-[0.625rem] font-bold uppercase tracking-[0.15em] text-soft">Initial Phase</Label>
-                </div>
+              <div>
+                <label className="text-xs text-soft">Stage</label>
                 <Select value={stage} onValueChange={setStage}>
-                  <SelectTrigger className="h-14 rounded-2xl border-hair bg-whisper/20 font-semibold text-ink px-5 focus:ring-4 focus:ring-charcoal/5">
+                  <SelectTrigger className="mt-1 h-11 rounded-lg border-hair bg-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-hair p-2 shadow-2xl">
+                  <SelectContent>
                     {STAGES.map(s => (
-                        <SelectItem key={s.id} value={s.id} className="rounded-xl py-3 focus:bg-cream cursor-pointer">
-                          <span className="font-semibold text-sm tracking-tight">{s.label}</span>
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.label}
                         </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </motion.div>
+              </div>
           </div>
 
-          <motion.div 
-            className="flex items-center gap-4 pt-6"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => onOpenChange(false)} 
-                className="flex-1 h-14 rounded-2xl text-[0.625rem] font-bold uppercase tracking-[0.25em] text-soft hover:bg-red-50 hover:text-red-500 transition-all"
-            >
-              Cancel
-            </Button>
+          <div className="flex justify-end gap-2 pt-3">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full">Cancel</Button>
             <Button 
                 type="submit" 
                 disabled={!isValid || busy} 
-                className="flex-[1.5] h-14 rounded-2xl bg-charcoal hover:bg-black text-white font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-charcoal/10 transition-all active:scale-[0.98] disabled:opacity-30 disabled:active:scale-100"
+                className="rounded-full bg-charcoal hover:bg-black text-white px-5"
             >
-              <AnimatePresence mode="wait">
-                {busy ? (
-                  <motion.span
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    Creating...
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="label"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    Launch Deal
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              {busy ? "Saving…" : "Add deal"}
             </Button>
-          </motion.div>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

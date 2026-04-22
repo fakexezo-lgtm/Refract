@@ -1,8 +1,8 @@
 // @ts-nocheck
-import React, { useState } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, SearchIcon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon, Logout01Icon } from "@hugeicons/core-free-icons";
+import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, Search01Icon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon, Logout01Icon, ZapIcon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import {
@@ -24,21 +24,23 @@ const NAV = [
   { to: "/app/tasks", label: "Tasks", icon: CheckmarkSquareIcon },
 ];
 
-function SidebarContent({ onCommand, onAdd, onNavigate, user, logout }) {
+function SidebarContent({ onCommand, onAdd, onNavigate, user, logout, showLogo = true }) {
   return (
-    <div className="h-full flex flex-col bg-charcoal text-white px-5 py-6">
-      <div className="flex items-center gap-2 px-2 mb-8">
-        <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
-          <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
+    <div className={`flex flex-col bg-charcoal text-white px-5 ${showLogo ? 'py-6 h-full' : 'pb-10 pt-2'}`}>
+      {showLogo && (
+        <div className="flex items-center gap-2.5 px-2 mb-8">
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" className="w-full h-full object-contain" alt="Refract Logo" />
+          </div>
+          <span className="font-serif text-xl tracking-tight font-semibold">Refract</span>
         </div>
-        <span className="font-serif text-xl tracking-tight">Refract</span>
-      </div>
+      )}
 
       <button
         onClick={onCommand}
         className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 text-sm mb-2 transition w-full overflow-hidden"
       >
-        <HugeiconsIcon icon={SearchIcon} className="w-4 h-4 shrink-0" />
+        <HugeiconsIcon icon={Search01Icon} className="w-4 h-4 shrink-0" />
         <span className="flex-1 text-left truncate whitespace-nowrap">Search or jump to…</span>
         <kbd className="hidden md:inline text-[10px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 shrink-0">⌘K</kbd>
       </button>
@@ -57,16 +59,17 @@ function SidebarContent({ onCommand, onAdd, onNavigate, user, logout }) {
             to={item.to}
             end={item.end}
             onClick={onNavigate}
+            style={{ touchAction: 'manipulation' }}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition relative ${
-                isActive ? "bg-white text-ink" : "text-white/70 hover:text-white hover:bg-white/5"
+              `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all active:scale-95 relative ${
+                isActive ? "bg-white text-ink shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
               }`
             }
           >
             {({ isActive }) => (
               <>
                 <HugeiconsIcon icon={item.icon} className="w-4 h-4" />
-                <span>{item.label}</span>
+                <span className="font-medium">{item.label}</span>
                 {isActive && (
                   <motion.span layoutId="navdot" className="ml-auto w-1.5 h-1.5 rounded-full bg-ink" />
                 )}
@@ -132,64 +135,133 @@ export default function Layout() {
   const [addOpen, setAddOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const isRootAppPath = ['/app', '/app/', '/app/clients', '/app/pipeline', '/app/tasks', '/app/settings', '/app/leads'].includes(location.pathname);
 
   useHotkeys("mod+k", (e) => { e.preventDefault(); setCmdOpen(true); });
 
-  React.useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  const toggleCommandPalette = () => setCmdOpen(prev => !prev);
+
+  // Auto-close mobile menu on navigation and handle body scroll lock
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+    return () => document.body.classList.remove('menu-open');
+  }, [mobileOpen]);
 
   return (
-    <div className="min-h-screen bg-whisper">
+    <div className="min-h-screen bg-background font-sans text-ink selection:bg-charcoal selection:text-cream overflow-x-hidden">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 z-30">
-        <SidebarContent onCommand={() => setCmdOpen(true)} onAdd={() => setAddOpen(true)} user={user} logout={logout} />
+      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 z-30 border-r border-hair">
+        <SidebarContent 
+          onCommand={() => setCmdOpen(true)} 
+          onAdd={() => setAddOpen(true)} 
+          user={user} 
+          logout={logout} 
+        />
       </aside>
 
-      {/* Mobile top bar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-charcoal text-white flex items-center justify-between px-4 h-14 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md overflow-hidden flex items-center justify-center">
-            <img src="/logo.png" alt="Refract" className="w-full h-full object-cover" />
+      {/* Mobile Header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-md border-b border-hair z-[100] px-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {!isRootAppPath ? (
+              <button 
+                onClick={() => navigate(-1)} 
+                className="p-2 -ml-2 rounded-full hover:bg-whisper transition-all active:scale-95"
+                style={{ touchAction: 'manipulation' }}
+              >
+                <HugeiconsIcon icon={ArrowLeft01Icon} className="w-5 h-5 text-ink" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => setMobileOpen(true)} 
+                className="p-2 -ml-2 rounded-full hover:bg-whisper transition-all active:scale-95"
+                style={{ touchAction: 'manipulation' }}
+              >
+                <HugeiconsIcon icon={Menu01Icon} className="w-5 h-5 text-ink" />
+              </button>
+            )}
+            
+            {/* Mobile Header Logo */}
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/app')}>
+              <img src="/logo.png" alt="Refract" className="w-6 h-6 object-contain" />
+              <span className="font-serif text-lg font-bold tracking-tight text-ink">Refract</span>
+            </div>
           </div>
-          <span className="font-serif text-lg">Refract</span>
-        </div>
+
         <div className="flex items-center gap-1">
-          <button onClick={() => setCmdOpen(true)} className="p-2 rounded-lg hover:bg-white/10">
-            <HugeiconsIcon icon={SearchIcon} className="w-5 h-5" />
+          <button 
+            onClick={() => navigate("/app/pipeline")} 
+            style={{ touchAction: 'manipulation' }}
+            className="w-10 h-10 flex items-center justify-center rounded-full text-soft hover:text-ink active:bg-cream active:scale-90 transition-all"
+          >
+            <HugeiconsIcon icon={DashboardSquareIcon} size={22} />
           </button>
-          <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg hover:bg-white/10">
-            <HugeiconsIcon icon={Menu01Icon} className="w-5 h-5" />
+          <button 
+            onClick={toggleCommandPalette} 
+            style={{ touchAction: 'manipulation' }}
+            className="w-10 h-10 flex items-center justify-center rounded-full text-soft hover:text-ink active:bg-cream active:scale-90 transition-all"
+          >
+            <HugeiconsIcon icon={Search01Icon} size={22} />
           </button>
         </div>
       </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile Sidebar */}
       <AnimatePresence>
         {mobileOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          <div className="lg:hidden fixed inset-0 z-[600]">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
+              className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             />
-            <motion.aside
-              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="lg:hidden fixed right-0 top-0 h-screen w-72 z-50"
+            
+            <motion.div 
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute top-0 left-0 bottom-0 w-[280px] bg-charcoal shadow-2xl flex flex-col"
             >
-              <div className="relative h-full">
-                <button onClick={() => setMobileOpen(false)} className="absolute top-4 left-4 z-10 text-white/70 p-1">
-                  <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
+              <div className="flex items-center justify-between px-6 pt-6 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                    <img src="/logo.png" className="w-full h-full object-contain" alt="Refract Logo" />
+                  </div>
+                  <span className="font-serif text-xl font-semibold tracking-tight text-white">Refract</span>
+                </div>
+                <button 
+                  onClick={() => setMobileOpen(false)} 
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all"
+                  style={{ touchAction: 'manipulation' }}
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={20} />
                 </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto">
                 <SidebarContent
-                  onCommand={() => { setMobileOpen(false); setCmdOpen(true); }}
-                  onAdd={() => { setMobileOpen(false); setAddOpen(true); }}
-                  onNavigate={() => setMobileOpen(false)}
-                  user={user}
-                  logout={logout}
+                    showLogo={false}
+                    onCommand={() => { setMobileOpen(false); setCmdOpen(true); }}
+                    onAdd={() => { setMobileOpen(false); setAddOpen(true); }}
+                    onNavigate={() => setMobileOpen(false)}
+                    user={user}
+                    logout={logout}
                 />
               </div>
-            </motion.aside>
-          </>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

@@ -62,11 +62,8 @@ export default function BulkActionsBar({ selectedIds, onClear }) {
   };
 
   return (
-    <motion.div
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 100, opacity: 0 }}
-      className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-charcoal text-white rounded-3xl shadow-2xl border border-white/10 px-6 py-4 flex items-center gap-6 min-w-max max-w-[90vw]"
+    <div
+      className="fixed bottom-0 left-0 w-full z-50 bg-charcoal text-white border-t border-white/10 px-6 py-4 flex items-center gap-6"
     >
       <div className="flex items-center gap-3 pr-6 border-r border-white/10">
         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
@@ -118,6 +115,6 @@ export default function BulkActionsBar({ selectedIds, onClear }) {
       >
         <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
       </button>
-    </motion.div>
+    </div>
   );
 }

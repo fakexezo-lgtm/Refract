@@ -7,7 +7,7 @@ const MAP = {
   inactive: { label: "Inactive", cls: "bg-[#efeadf] text-ink" },
 };
 
-export default function StatusBadge({ status = "lead", className }) {
+export default function StatusBadge({ status = "lead", className = "" }) {
   const m = MAP[status] || MAP.lead;
   return (
     <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-hair", m.cls, className)}>

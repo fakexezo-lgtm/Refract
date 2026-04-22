@@ -15,7 +15,7 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="sync">
         {toasts.map(function ({ id, title, description, action, open, ...props }) {
           return (
             <motion.div

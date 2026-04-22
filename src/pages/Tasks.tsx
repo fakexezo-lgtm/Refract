@@ -1,9 +1,11 @@
+// @ts-nocheck
 import React, { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRoutes } from "@/lib/apiRoutes";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkSquareIcon, AlertCircleIcon, Calendar03Icon, Timer01Icon, AddIcon, ArrowDown01Icon, ArrowRight01Icon, CheckmarkCircle03Icon } from "@hugeicons/core-free-icons";
+import Section from "@/components/shared/Section";
+import { CheckmarkSquareIcon, AlertCircleIcon, Calendar03Icon, Timer01Icon, Add01Icon, CheckmarkCircle03Icon } from "@hugeicons/core-free-icons";
 import TaskRow from "@/components/dashboard/TaskRow";
 import EmptyState from "@/components/shared/EmptyState";
 import { dueBucket } from "@/lib/format";
@@ -12,84 +14,16 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Cast JS components to any to bypass TS errors
-const ButtonAny = Button as any;
-const InputAny = Input as any;
-const DialogAny = Dialog as any;
-const DialogContentAny = DialogContent as any;
-const DialogHeaderAny = DialogHeader as any;
-const DialogTitleAny = DialogTitle as any;
-const SelectAny = Select as any;
-const SelectContentAny = SelectContent as any;
-const SelectItemAny = SelectItem as any;
-const SelectTriggerAny = SelectTrigger as any;
-const SelectValueAny = SelectValue as any;
-
-function Section({ icon: Icon, title, count, tone = "text-ink", children, empty, delay = 0, expanded = true, onToggle = () => {} }: any) {
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-    >
-      <button onClick={onToggle} className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
-        <HugeiconsIcon icon={expanded ? ArrowDown01Icon : ArrowRight01Icon} className="w-4 h-4 text-soft" />
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: delay + 0.1, type: "spring", stiffness: 500, damping: 30 }}
-        >
-          <HugeiconsIcon icon={Icon} className={'w-4 h-4 ' + (tone || "text-ink")} strokeWidth={1.75} />
-        </motion.div>
-        <h2 className="font-serif text-2xl text-ink">{title}</h2>
-        <motion.span 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: delay + 0.15 }}
-          className="text-xs text-soft"
-        >
-          ({count})
-        </motion.span>
-      </button>
-      <AnimatePresence initial={false}>
-        {expanded && (
-          count === 0 ? (
-            <motion.div
-              key={`${title}-empty`}
-              initial={{ opacity: 0, height: 0, overflow: "hidden" }}
-              animate={{ opacity: 1, height: "auto", transitionEnd: { overflow: "visible" } }}
-              exit={{ opacity: 0, height: 0, overflow: "hidden" }}
-              transition={{ duration: 0.3 }}
-              className="text-sm text-soft py-2"
-            >
-              {empty}
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`${title}-items`}
-              initial={{ opacity: 0, height: 0, overflow: "hidden" }}
-              animate={{ opacity: 1, height: "auto", transitionEnd: { overflow: "visible" } }}
-              exit={{ opacity: 0, height: 0, overflow: "hidden" }}
-              transition={{ duration: 0.3 }}
-              className="space-y-2"
-            >
-              <AnimatePresence>{children}</AnimatePresence>
-            </motion.div>
-          )
-        )}
-      </AnimatePresence>
-    </motion.section>
-  );
-}
+import { DatePicker } from "@/components/ui/date-picker";
+import { parseDate, getLocalTimeZone, today } from "@internationalized/date";
 
 function AddTaskDialog({ open, onOpenChange, task, clients = [] }: any) {
   const qc = useQueryClient();
   
   const [title, setTitle] = useState("");
-  const [due, setDue] = useState("");
+  const [due, setDue] = useState(null);
   const [clientId, setClientId] = useState("");
   const [busy, setBusy] = useState(false);
   const [titleFocused, setTitleFocused] = useState(false);
@@ -103,12 +37,15 @@ function AddTaskDialog({ open, onOpenChange, task, clients = [] }: any) {
       if (task) {
         setTitle(task.title || "");
         setClientId(task.client_id || "");
-        setDue(task.due_date || "");
+        try {
+          setDue(task.due_date ? parseDate(task.due_date) : null);
+        } catch (e) {
+          setDue(null);
+        }
       } else {
         setTitle("");
         setClientId("");
-        const t = new Date(); t.setDate(t.getDate() + 1);
-        setDue(t.toISOString().slice(0, 10));
+        setDue(today(getLocalTimeZone()).add({ days: 1 }));
       }
     }
   }, [open, task]);
@@ -125,14 +62,14 @@ function AddTaskDialog({ open, onOpenChange, task, clients = [] }: any) {
         await apiRoutes.updateTask(task.id, {
           client_id: clientId,
           title: title.trim(),
-          due_date: due || undefined
+          due_date: due ? due.toString() : undefined
         });
         toast.success("Task updated");
       } else {
         await apiRoutes.createTask({
           client_id: clientId,
           title: title.trim(),
-          due_date: due || undefined,
+          due_date: due ? due.toString() : undefined,
           completed: false
         });
         toast.success("Task added");
@@ -152,84 +89,72 @@ function AddTaskDialog({ open, onOpenChange, task, clients = [] }: any) {
   };
 
   return (
-    <DialogAny open={open} onOpenChange={onOpenChange}>
-      <DialogContentAny className="max-w-md rounded-2xl border-hair bg-white">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl border-hair bg-white">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         >
-          <DialogHeaderAny>
-            <DialogTitleAny className="font-serif text-2xl text-ink">{isEdit ? "Edit task" : "Add task"}</DialogTitleAny>
-          </DialogHeaderAny>
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-ink">{isEdit ? "Edit task" : "Add task"}</DialogTitle>
+          </DialogHeader>
           <form onSubmit={submit} className="space-y-4 pt-2">
-            <motion.div
-              animate={{ scale: titleFocused ? 1.02 : 1 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div>
               <label className="text-xs text-soft">Task</label>
-              <InputAny 
+              <Input 
                 autoFocus 
                 value={title} 
                 onChange={(e: any) => setTitle(e.target.value)} 
                 onFocus={() => setTitleFocused(true)}
                 onBlur={() => setTitleFocused(false)}
                 placeholder="Send revised proposal"
-                className={"mt-1 h-11 rounded-lg border-hair bg-white transition-all duration-200" + (titleFocused ? " border-ink/60 shadow-sm" : "")} 
+                className="mt-1 h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all" 
               />
-            </motion.div>
+            </div>
             
-            <motion.div
-              animate={{ scale: clientFocused ? 1.02 : 1 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div>
               <label className="text-xs text-soft">Client</label>
-              <SelectAny value={clientId} onValueChange={setClientId}>
-                <SelectTriggerAny
-                  className={"mt-1 h-11 rounded-lg border-hair bg-white transition-all duration-200" + (clientFocused ? " border-ink/60 shadow-sm" : "")}
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger
+                  className="mt-1 h-11 rounded-lg border-hair bg-white focus:border-charcoal transition-all"
                   onFocus={() => setClientFocused(true)}
                   onBlur={() => setClientFocused(false)}
                 >
-                  <SelectValueAny placeholder="Select a client..." />
-                </SelectTriggerAny>
-                <SelectContentAny className="rounded-lg border-hair bg-white">
+                  <SelectValue placeholder="Select a client..." />
+                </SelectTrigger>
+                <SelectContent className="rounded-lg border-hair bg-white">
                   {clientList.map((c: any) => (
-                    <SelectItemAny key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItemAny>
+                    <SelectItem key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItem>
                   ))}
-                </SelectContentAny>
-              </SelectAny>
-            </motion.div>
+                </SelectContent>
+              </Select>
+            </div>
             
             <div>
-              <label className="text-xs text-soft">Due date</label>
-              <InputAny 
-                type="date" 
+              <DatePicker 
+                label="Due date"
                 value={due} 
-                onChange={(e: any) => setDue(e.target.value)} 
-                className="mt-1 h-11 rounded-lg border-hair bg-white" 
+                onChange={setDue}
               />
             </div>
             
             <div className="flex justify-end gap-2 pt-3">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <ButtonAny type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full">
-                  Cancel
-                </ButtonAny>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <ButtonAny 
-                  type="submit" 
-                  disabled={!title.trim() || !clientId || busy} 
-                  className="rounded-full bg-charcoal hover:bg-black text-white"
-                >
-                  {busy ? "Saving…" : isEdit ? "Save changes" : "Add task"}
-                </ButtonAny>
-              </motion.div>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full">
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={!title.trim() || !clientId || busy} 
+                className="rounded-full bg-charcoal hover:bg-black text-white"
+              >
+                {busy ? "Saving…" : isEdit ? "Save changes" : "Add task"}
+              </Button>
             </div>
           </form>
         </motion.div>
-      </DialogContentAny>
-    </DialogAny>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -288,14 +213,14 @@ export default function Tasks() {
     });
 
     // 2. Patch cache for immediate bucket move
-    const patch = { completed: true };
+    const patch = { completed: true, completed_at: new Date().toISOString() };
     const apply = (old: any = []) => Array.isArray(old) ? old.map((t: any) => t.id === taskId ? { ...t, ...patch } : t) : old;
     qc.setQueryData(["tasks"], apply);
     if (clientId) qc.setQueryData(["tasks", clientId], apply);
 
     // 3. Persist
     try {
-      await apiRoutes.updateTask(taskId, { completed: true });
+      await apiRoutes.updateTask(taskId, { completed: true, completed_at: new Date().toISOString() });
       if (title) toast.success(`"${title}" completed`);
       if (clientId) {
         logActivity({ client_id: clientId, type: "task_completed", content: `Completed: ${title}`, metadata: {} }).catch(() => {});
@@ -377,7 +302,7 @@ export default function Tasks() {
   }, [buckets, qc, persistCompleted]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <motion.div 
         className="flex items-start justify-between gap-3"
         initial={{ opacity: 0, y: -10 }}
@@ -393,50 +318,44 @@ export default function Tasks() {
           >
             Your list
           </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.4 }}
-            className="font-serif text-4xl md:text-5xl text-ink"
-          >
-            Tasks
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-soft mt-2"
-          >
-            {total} open · focused on what moves the needle
-          </motion.p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl md:text-5xl font-serif text-ink tracking-tight flex items-baseline gap-2">
+              <span>Tasks</span>
+              <span className="text-xs sm:text-sm font-sans font-normal text-soft whitespace-nowrap">{total} open</span>
+            </h1>
+            <div className="text-[12px] sm:text-[13px] text-soft mt-0.5 leading-tight">
+              Focused on what moves the needle.
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {clients.length > 0 && (
-            <SelectAny value={filterClient} onValueChange={setFilterClient}>
-              <SelectTriggerAny className="h-9 min-w-[130px] w-auto rounded-full border-hair bg-white text-sm text-soft">
-                <SelectValueAny placeholder="All clients" />
-              </SelectTriggerAny>
-              <SelectContentAny className="rounded-xl border-hair bg-white">
-                <SelectItemAny value="all">All clients</SelectItemAny>
+            <Select value={filterClient} onValueChange={setFilterClient}>
+              <SelectTrigger 
+                style={{ touchAction: 'manipulation' }}
+                className="h-9 min-w-[130px] w-auto rounded-full border-hair bg-white text-sm text-soft active:bg-cream/50 transition-all"
+              >
+                <SelectValue placeholder="All clients" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-hair bg-white">
+                <SelectItem value="all">All clients</SelectItem>
                 {clients.map((c: any) => (
-                  <SelectItemAny key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItemAny>
+                  <SelectItem key={c.id} value={c.id}>{c.name || c.company || "Unnamed Client"}</SelectItem>
                 ))}
-              </SelectContentAny>
-            </SelectAny>
+              </SelectContent>
+            </Select>
           )}
           {clients.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.25, duration: 0.3 }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <ButtonAny onClick={() => setAddTaskOpen(true)} className="rounded-full bg-charcoal hover:bg-black text-white">
-                <HugeiconsIcon icon={AddIcon} className="w-4 h-4 mr-1" />
+            <div>
+              <Button 
+                onClick={() => setAddTaskOpen(true)} 
+                style={{ touchAction: 'manipulation' }}
+                className="rounded-full bg-charcoal hover:bg-black text-white active:scale-95 transition-all"
+              >
+                <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-1" />
                 Add task
-              </ButtonAny>
-            </motion.div>
+              </Button>
+            </div>
           )}
         </div>
       </motion.div>
@@ -567,13 +486,13 @@ export default function Tasks() {
             ))}
             {buckets.completed.length > 5 && (
               <div className="pt-2 text-center">
-                <ButtonAny
+                <Button
                   variant="ghost"
                   onClick={() => navigate('/app/tasks/history')}
                   className="text-xs text-soft h-8"
                 >
                   View history
-                </ButtonAny>
+                </Button>
               </div>
             )}
           </Section>

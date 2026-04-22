@@ -9,6 +9,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { timeAgo } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 
 export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
   const qc = useQueryClient();
@@ -70,19 +77,30 @@ export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
                 <div className="text-[10px] font-medium uppercase tracking-wide text-soft/40">
                   {timeAgo(note.created_at)}
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={() => onEdit(note)}
-                    className="p-1.5 rounded-lg hover:bg-cream text-soft hover:text-ink transition-colors"
-                  >
-                    <HugeiconsIcon icon={Edit01Icon} className="w-3.5 h-3.5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(note.id)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-soft hover:text-danger transition-colors"
-                  >
-                    <HugeiconsIcon icon={Delete03Icon} className="w-3.5 h-3.5" />
-                  </button>
+                <div className="flex items-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 rounded-lg hover:bg-cream text-soft hover:text-ink transition-colors focus:outline-none">
+                        <HugeiconsIcon icon={MoreHorizontalIcon} className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32 bg-white border-hair rounded-xl">
+                      <DropdownMenuItem 
+                        onClick={() => onEdit(note)}
+                        className="cursor-pointer hover:bg-cream transition-colors"
+                      >
+                        <HugeiconsIcon icon={Edit01Icon} className="w-4 h-4 mr-2 text-soft" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(note.id)}
+                        className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50 transition-colors"
+                      >
+                        <HugeiconsIcon icon={Delete03Icon} className="w-4 h-4 mr-2" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 

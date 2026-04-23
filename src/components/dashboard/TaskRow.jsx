@@ -70,19 +70,31 @@ export default memo(function TaskRow({ task, client = null, emphasizeOverdue = f
       return;
     }
 
-    // fallback for other views
+    // fallback for other views (e.g. ClientTasks without explicit onComplete)
     patchCaches({ completed: true });
+    // Also patch clientFull cache for cross-page sync
+    if (task.client_id) {
+      qc.setQueryData(["clientFull", task.client_id], (old) => {
+        if (!old) return old;
+        return { ...old, tasks: (old.tasks || []).map((t) => t.id === task.id ? { ...t, completed: true } : t) };
+      });
+    }
     apiRoutes.updateTask(task.id, { completed: true })
       .then(() => {
         toast.success(`"${task.title}" completed`);
         if (task.client_id) {
           logActivity({ client_id: task.client_id, type: "task_completed", content: `Completed: ${task.title}`, metadata: {} }).catch(() => {});
         }
+        qc.invalidateQueries({ queryKey: ["tasks"] });
         qc.invalidateQueries({ queryKey: ["activities"] });
+        if (task.client_id) qc.invalidateQueries({ queryKey: ["clientFull", task.client_id] });
       })
-      .catch(() => {
-        // Only revert here if we DON'T have an onComplete handler
-        // toast.error("Failed to sync completion");
+      .catch((err) => {
+        // Revert on failure
+        setLocalCompleted(false);
+        patchCaches({ completed: false });
+        if (task.client_id) qc.invalidateQueries({ queryKey: ["clientFull", task.client_id] });
+        toast.error("Failed to complete task. Please try again.");
       });
   };
 

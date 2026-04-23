@@ -159,7 +159,7 @@ export default function ClientDetail() {
                 onClick={() => setTaskOpen(true)}
                 className="rounded-xl h-11 px-6 bg-white text-charcoal hover:bg-cream transition-all font-bold shadow-lg"
               >
-                Manage Task
+                Add Task
               </Button>
             </div>
           </div>

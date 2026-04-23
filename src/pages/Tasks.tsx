@@ -170,22 +170,13 @@ export default function Tasks() {
     upcoming: true
   });
   const [filterClient, setFilterClient] = useState("all");
-  
-  const [persistCompleted, setPersistCompleted] = useState<Set<string>>(new Set());
 
-  const { data: tasksData = [], isLoading: tasksLoading, isError: tasksError, error: tasksErrorDetails } = useQuery({ 
+  const { data: tasks = [], isLoading: tasksLoading, isError: tasksError, error: tasksErrorDetails } = useQuery({ 
     queryKey: ["tasks"], 
     queryFn: apiRoutes.getTasks,
     staleTime: 0,
     gcTime: 1000 * 60 * 30,    // 30 minutes
   });
-
-  // AUTHORITATIVE tasks list: merges server state with local "permanent" completions
-  const tasks = useMemo(() => {
-    return tasksData.map((t: any) => 
-      persistCompleted.has(t.id) ? { ...t, completed: true } : t
-    );
-  }, [tasksData, persistCompleted]);
 
   const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: apiRoutes.getClients });
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [c.id, c])), [clients]);
@@ -203,32 +194,36 @@ export default function Tasks() {
   }, [tasks, filterClient]);
 
   const handleComplete = async (taskId: string, title?: string, clientId?: string) => {
-    if (persistCompleted.has(taskId)) return;
-    
-    // 1. Mark as completed LOCALLY (Permanent)
-    setPersistCompleted(prev => {
-      const next = new Set(prev);
-      next.add(taskId);
-      return next;
-    });
-
-    // 2. Patch cache for immediate bucket move
-    const patch = { completed: true, completed_at: new Date().toISOString() };
+    // 1. Optimistic cache patch for immediate UI feedback
+    const patch = { completed: true };
     const apply = (old: any = []) => Array.isArray(old) ? old.map((t: any) => t.id === taskId ? { ...t, ...patch } : t) : old;
+    const prevTasks = qc.getQueryData(["tasks"]);
     qc.setQueryData(["tasks"], apply);
-    if (clientId) qc.setQueryData(["tasks", clientId], apply);
+    if (clientId) {
+      // Also patch the clientFull cache so ClientDetail stays in sync
+      qc.setQueryData(["clientFull", clientId], (old: any) => {
+        if (!old) return old;
+        return { ...old, tasks: (old.tasks || []).map((t: any) => t.id === taskId ? { ...t, ...patch } : t) };
+      });
+    }
 
-    // 3. Persist
+    // 2. Persist to Supabase
     try {
-      await apiRoutes.updateTask(taskId, { completed: true, completed_at: new Date().toISOString() });
+      await apiRoutes.updateTask(taskId, { completed: true });
       if (title) toast.success(`"${title}" completed`);
       if (clientId) {
         logActivity({ client_id: clientId, type: "task_completed", content: `Completed: ${title}`, metadata: {} }).catch(() => {});
       }
+      // Refetch to ensure server state is authoritative
+      qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["activities"] });
+      if (clientId) qc.invalidateQueries({ queryKey: ["clientFull", clientId] });
     } catch (e) {
-      console.error("Completion sync failed, but keeping local completion state.", e);
-      // We don't revert here because the user wants it permanent.
+      // Revert optimistic update on failure
+      console.error("Task completion failed:", e);
+      qc.setQueryData(["tasks"], prevTasks);
+      if (clientId) qc.invalidateQueries({ queryKey: ["clientFull", clientId] });
+      toast.error("Failed to complete task. Please try again.");
     }
   };
 
@@ -299,7 +294,7 @@ export default function Tasks() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [buckets, qc, persistCompleted]);
+  }, [buckets, qc]);
 
   return (
     <div className="space-y-8">

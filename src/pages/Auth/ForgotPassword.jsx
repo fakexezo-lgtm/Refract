@@ -28,10 +28,19 @@ export default function ForgotPassword() {
       return;
     }
     setLoading(true);
-    await forgotPassword(email);
+    const result = await forgotPassword(email);
     setLoading(false);
-    // Security-safe response: keep the same success message regardless of account existence.
-    setSent(true);
+    if (result.success) {
+      setSent(true);
+    } else {
+      // Show actual error for network/config/rate-limit issues
+      if (result.code === "RATE_LIMIT" || result.code === "SERVER_ERROR" || result.code === "FORGOT_FAILED") {
+        setError(result.error || "Something went wrong. Please try again.");
+      } else {
+        // For all other cases (including user not found), show success for security
+        setSent(true);
+      }
+    }
   };
 
   return (

@@ -5,6 +5,7 @@ import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LockPasswordIcon, ArrowRight01Icon, Tick01Icon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/services/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -21,6 +22,32 @@ export default function ResetPassword() {
   React.useEffect(() => {
     let mounted = true;
     const checkRecoveryState = async () => {
+      // PKCE flow: exchange the code from the URL for a session
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      
+      if (code) {
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!mounted) return;
+          if (error) {
+            setError(error.message || "Invalid or expired reset link");
+            setLinkState("invalid");
+            return;
+          }
+          if (data?.session) {
+            setLinkState("valid");
+            return;
+          }
+        } catch (err) {
+          if (!mounted) return;
+          setError("Invalid or expired reset link");
+          setLinkState("invalid");
+          return;
+        }
+      }
+
+      // Fallback: check for legacy hash-based tokens or existing recovery session
       const result = await getRecoveryState();
       if (!mounted) return;
       if (result.valid) {

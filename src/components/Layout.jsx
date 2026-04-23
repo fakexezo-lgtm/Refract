@@ -94,7 +94,11 @@ function SidebarContent({ onCommand, onAdd, onNavigate, user, logout, showLogo =
               </div>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="w-56 mb-4 lg:mb-0 lg:ml-2 bg-charcoal border-white/10 text-white">
+          <DropdownMenuContent 
+            side={showLogo ? "right" : "top"} 
+            align={showLogo ? "end" : "center"} 
+            className="w-56 mb-4 lg:mb-0 lg:ml-2 bg-charcoal border-white/10 text-white z-[1001]"
+          >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user?.full_name || "User"}</p>

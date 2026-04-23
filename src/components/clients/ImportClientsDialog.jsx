@@ -158,12 +158,12 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) { onOpenChange(v); if (!v) reset(); } }}>
-      <DialogContent className={cn("rounded-2xl border-hair bg-white transition-all duration-300", step === 2 ? "max-w-4xl" : "max-w-md")}>
+      <DialogContent className={cn("rounded-2xl border-hair bg-white transition-all duration-300 w-[95vw] sm:w-full", step === 2 ? "max-w-4xl" : "max-w-md")}>
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">
+          <DialogTitle className="font-serif text-xl sm:text-2xl">
             {step === 1 ? "Import clients" : `Preview (${clients.length} clients)`}
           </DialogTitle>
-          <DialogDescription className="text-soft mt-1">
+          <DialogDescription className="text-soft mt-1 text-sm">
             {step === 1 
               ? "Upload a CSV, Excel, or TXT file with client information." 
               : "Review and verify the data before importing. You can remove rows that shouldn't be imported."}
@@ -171,7 +171,7 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
         </DialogHeader>
 
         {step === 1 ? (
-          <div className="pt-6 space-y-4">
+          <div className="pt-4 sm:pt-6 space-y-4">
             <div 
               onClick={() => fileInputRef.current.click()}
               onDragOver={(e) => {
@@ -191,7 +191,7 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
                 handleFileChange(e);
               }}
               className={cn(
-                "group relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-12 transition cursor-pointer",
+                "group relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-8 sm:p-12 transition cursor-pointer",
                 isDragging ? "border-charcoal bg-whisper scale-[0.99]" : "border-hair hover:border-charcoal/50 hover:bg-whisper"
               )}
             >
@@ -202,11 +202,11 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
                 accept=".csv,.xlsx,.xls,.txt" 
                 className="hidden" 
               />
-              <div className="w-16 h-16 rounded-full bg-cream flex items-center justify-center text-charcoal mb-4 group-hover:scale-110 transition">
-                <HugeiconsIcon icon={Upload02Icon} className="w-8 h-8" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-cream flex items-center justify-center text-charcoal mb-4 group-hover:scale-110 transition">
+                <HugeiconsIcon icon={Upload02Icon} className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
-              <div className="text-ink font-medium">Click to upload or drag and drop</div>
-              <div className="text-sm text-soft mt-1">CSV, Excel, or TXT (Max 5MB)</div>
+              <div className="text-ink font-medium text-sm sm:text-base">Click to upload or drag and drop</div>
+              <div className="text-xs sm:text-sm text-soft mt-1">CSV, Excel, or TXT (Max 5MB)</div>
             </div>
 
             <div className="p-4 rounded-xl bg-cream/50 border border-hair flex gap-3">
@@ -225,25 +225,25 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
             )}
           </div>
         ) : (
-          <div className="pt-4 space-y-4">
-            <div className="max-h-[400px] overflow-auto border border-hair rounded-xl">
-              <table className="w-full text-left text-sm border-collapse">
+          <div className="pt-2 sm:pt-4 space-y-4">
+            <div className="max-h-[350px] sm:max-h-[400px] overflow-auto border border-hair rounded-xl bg-white">
+              <table className="w-full text-left text-sm border-collapse min-w-[500px] sm:min-w-0">
                 <thead className="bg-whisper sticky top-0 z-10">
                   <tr>
                     <th className="p-3 font-medium text-soft border-b border-hair">Name</th>
                     <th className="p-3 font-medium text-soft border-b border-hair">Email</th>
-                    <th className="p-3 font-medium text-soft border-b border-hair">Company</th>
-                    <th className="p-3 font-medium text-soft border-b border-hair">Phone</th>
+                    <th className="p-3 font-medium text-soft border-b border-hair hidden sm:table-cell">Company</th>
+                    <th className="p-3 font-medium text-soft border-b border-hair hidden md:table-cell">Phone</th>
                     <th className="p-3 font-medium text-soft border-b border-hair w-12"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hair">
                   {clients.map((c) => (
                     <tr key={c.id} className="group hover:bg-whisper/50 transition">
-                      <td className="p-3 text-ink">{c.name}</td>
-                      <td className="p-3 text-soft">{c.email || "—"}</td>
-                      <td className="p-3 text-soft">{c.company || "—"}</td>
-                      <td className="p-3 text-soft">{c.phone || "—"}</td>
+                      <td className="p-3 text-ink font-medium whitespace-nowrap">{c.name}</td>
+                      <td className="p-3 text-soft whitespace-nowrap max-w-[150px] sm:max-w-none truncate">{c.email || "—"}</td>
+                      <td className="p-3 text-soft whitespace-nowrap hidden sm:table-cell">{c.company || "—"}</td>
+                      <td className="p-3 text-soft whitespace-nowrap hidden md:table-cell">{c.phone || "—"}</td>
                       <td className="p-3">
                         <button 
                           onClick={() => removeRow(c.id)}
@@ -264,23 +264,23 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
               </div>
             )}
 
-            <div className="flex justify-between items-center bg-whisper/50 p-4 rounded-xl border border-hair">
+            <div className="flex flex-col sm:flex-row justify-between items-center bg-whisper/50 p-4 rounded-xl border border-hair gap-4">
               <div className="text-sm text-soft">
                 Ready to import <span className="font-semibold text-ink">{clients.length}</span> clients
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <Button 
                   variant="ghost" 
                   onClick={() => setStep(1)}
                   disabled={busy}
-                  className="rounded-full"
+                  className="rounded-full flex-1 sm:flex-none"
                 >
                   Change file
                 </Button>
                 <Button 
                   onClick={handleImport}
                   disabled={busy || clients.length === 0}
-                  className="rounded-full bg-charcoal hover:bg-black text-white px-6 relative overflow-hidden"
+                  className="rounded-full bg-charcoal hover:bg-black text-white px-6 relative overflow-hidden flex-1 sm:flex-none"
                 >
                   {busy ? (
                     <span className="flex items-center gap-2">

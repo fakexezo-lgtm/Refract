@@ -3,7 +3,7 @@ import * as React from "react";
 import { cva } from "class-variance-authority";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const ToastProvider = React.forwardRef(({ className, ...props }, ref) => (
   <div
@@ -110,3 +110,4 @@ export {
   ToastClose,
   ToastAction,
 };
+

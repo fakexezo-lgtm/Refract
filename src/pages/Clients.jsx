@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SearchIcon, Add01Icon, UserIcon } from "@hugeicons/core-free-icons";
@@ -14,8 +14,8 @@ import ImportClientsDialog from "@/components/clients/ImportClientsDialog";
 import BulkActionsBar from "@/components/clients/BulkActionsBar";
 import { Checkbox } from "@/components/ui/checkbox";
 import EmptyState from "@/components/shared/EmptyState";
-import { cn } from "@/lib/utils";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { cn } from "@/utils";
+import { apiRoutes } from "@/services/apiRoutes";
 
 const FILTERS = [
   { id: "all", label: "All" },

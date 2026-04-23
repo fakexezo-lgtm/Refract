@@ -1,12 +1,12 @@
 // @ts-nocheck
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, CheckmarkCircle03Icon, Calendar03Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { useNavigate } from "react-router-dom";
-import { shortDate } from "@/lib/format";
+import { shortDate } from "@/utils/format";
 import { Button } from "@/components/ui/button";
 
 function HistoryGroup({ title, tasks, clientMap }) {

@@ -6,7 +6,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const Dialog = DialogPrimitive.Root
 
@@ -96,3 +96,4 @@ export {
   DialogTitle,
   DialogDescription,
 }
+

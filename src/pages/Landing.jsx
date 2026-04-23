@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, Clock01Icon, UserIcon, SparklesIcon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -174,3 +174,4 @@ export default function Landing() {
     </div>
   );
 }
+

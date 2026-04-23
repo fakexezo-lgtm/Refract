@@ -1,17 +1,17 @@
 // @ts-nocheck
 import React, { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Section from "@/components/shared/Section";
 import { CheckmarkSquareIcon, AlertCircleIcon, Calendar03Icon, Timer01Icon, Add01Icon, CheckmarkCircle03Icon } from "@hugeicons/core-free-icons";
 import TaskRow from "@/components/dashboard/TaskRow";
 import EmptyState from "@/components/shared/EmptyState";
-import { dueBucket } from "@/lib/format";
+import { dueBucket } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { logActivity } from "@/lib/activity";
+import { logActivity } from "@/services/activity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";

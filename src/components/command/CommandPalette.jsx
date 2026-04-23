@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { base44 } from "@/api/base44Client";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { base44 } from "@/services/base44Client";
+import { apiRoutes } from "@/services/apiRoutes";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -106,3 +106,4 @@ export default function CommandPalette({ open, onOpenChange, onQuickAddClient })
     </Dialog>
   );
 }
+

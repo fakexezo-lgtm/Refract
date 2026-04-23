@@ -1,5 +1,5 @@
 import React from "react";
-import { STAGES } from "@/lib/constants";
+import { STAGES } from "@/constants";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 

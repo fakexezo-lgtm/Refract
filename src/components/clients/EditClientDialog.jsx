@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { logActivity } from "@/lib/activity";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { logActivity } from "@/services/activity";
+import { apiRoutes } from "@/services/apiRoutes";
 
 export default function EditClientDialog({ open, onOpenChange, client }) {
   const qc = useQueryClient();
@@ -105,3 +105,4 @@ export default function EditClientDialog({ open, onOpenChange, client }) {
     </Dialog>
   );
 }
+

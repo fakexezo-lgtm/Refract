@@ -5,7 +5,7 @@ import * as MenubarPrimitive from "@radix-ui/react-menubar"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle02Icon, ArrowRightIcon, CircleIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 function MenubarMenu({
   ...props
@@ -199,3 +199,4 @@ export {
   MenubarSub,
   MenubarShortcut,
 }
+

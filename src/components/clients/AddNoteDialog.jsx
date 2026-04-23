@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { logActivity } from "@/lib/activity";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { logActivity } from "@/services/activity";
+import { apiRoutes } from "@/services/apiRoutes";
 import { toast } from "sonner";
 
 export default function AddNoteDialog({ open, onOpenChange, client, note = null }) {

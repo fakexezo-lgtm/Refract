@@ -3,7 +3,7 @@ import { OTPInput, OTPInputContext } from "input-otp"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Minus } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const InputOTP = React.forwardRef(({ className, containerClassName, ...props }, ref) => (
   <OTPInput
@@ -52,3 +52,4 @@ const InputOTPSeparator = React.forwardRef(({ ...props }, ref) => (
 InputOTPSeparator.displayName = "InputOTPSeparator"
 
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
+

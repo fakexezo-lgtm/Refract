@@ -4,11 +4,11 @@ import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Avatar from "@/components/shared/Avatar";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { timeAgo } from "@/lib/format";
+import { timeAgo } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { differenceInDays, parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 

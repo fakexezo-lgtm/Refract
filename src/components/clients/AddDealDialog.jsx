@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { useQueryClient } from "@tanstack/react-query";
-import { STAGES } from "@/lib/constants";
-import { logActivity } from "@/lib/activity";
+import { STAGES } from "@/constants";
+import { logActivity } from "@/services/activity";
 import { toast } from "sonner";
 
 export default function AddDealDialog({ open, onOpenChange, client }) {

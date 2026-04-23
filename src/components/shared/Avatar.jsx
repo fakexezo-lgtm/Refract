@@ -1,6 +1,6 @@
 import React from "react";
-import { initialsOf, pickAvatarColor } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { initialsOf, pickAvatarColor } from "@/constants";
+import { cn } from "@/utils";
 
 export default function Avatar({ name = "", color, size = "md", className = "" }) {
   const bg = color || pickAvatarColor(name);

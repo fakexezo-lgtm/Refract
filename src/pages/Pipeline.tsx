@@ -1,16 +1,16 @@
 // @ts-nocheck
 import React, { useMemo, useState, memo, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { STAGES } from "@/lib/constants";
+import { STAGES } from "@/constants";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@/components/shared/Avatar";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
-import { logActivity } from "@/lib/activity";
+import { logActivity } from "@/services/activity";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
   Add01Icon, 

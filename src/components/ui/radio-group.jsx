@@ -3,7 +3,7 @@ import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CircleIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const RadioGroup = React.forwardRef(({ className, ...props }, ref) => {
   return (<RadioGroupPrimitive.Root className={cn("grid gap-2", className)} {...props} ref={ref} />);
@@ -28,3 +28,4 @@ const RadioGroupItem = React.forwardRef(({ className, ...props }, ref) => {
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
 
 export { RadioGroup, RadioGroupItem }
+

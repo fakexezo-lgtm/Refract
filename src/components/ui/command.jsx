@@ -3,7 +3,7 @@ import { Command as CommandPrimitive } from "cmdk"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SearchIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 
 const Command = React.forwardRef(({ className, ...props }, ref) => (
@@ -115,3 +115,4 @@ export {
   CommandShortcut,
   CommandSeparator,
 }
+

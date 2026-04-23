@@ -3,7 +3,7 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 import { motion, AnimatePresence } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Tick01Icon } from "@hugeicons/core-free-icons"
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 
 const checkboxVariants = cva(
@@ -74,3 +74,4 @@ const Checkbox = React.forwardRef<
 Checkbox.displayName = "AnimateCheckbox"
 
 export { Checkbox }
+

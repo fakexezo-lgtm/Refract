@@ -3,21 +3,21 @@ import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import ClientHeader from "@/components/client/ClientHeader";
-import Timeline from "@/components/client/Timeline";
-import ClientTasks from "@/components/client/ClientTasks";
-import ClientDeals from "@/components/client/ClientDeals";
-import AddNoteDialog from "@/components/client/AddNoteDialog";
-import AddTaskDialog from "@/components/client/AddTaskDialog";
-import AddDealDialog from "@/components/client/AddDealDialog";
-import { parseISO, timeAgo } from "@/lib/format";
-import { apiRoutes } from "@/lib/apiRoutes";
+import ClientHeader from "@/components/clients/ClientHeader";
+import Timeline from "@/components/clients/Timeline";
+import ClientTasks from "@/components/clients/ClientTasks";
+import ClientDeals from "@/components/clients/ClientDeals";
+import AddNoteDialog from "@/components/clients/AddNoteDialog";
+import AddTaskDialog from "@/components/clients/AddTaskDialog";
+import AddDealDialog from "@/components/clients/AddDealDialog";
+import { parseISO, timeAgo } from "@/utils/format";
+import { apiRoutes } from "@/services/apiRoutes";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
-import ClientNotes from "@/components/client/ClientNotes";
-import EditClientDialog from "@/components/client/EditClientDialog";
+import ClientNotes from "@/components/clients/ClientNotes";
+import EditClientDialog from "@/components/clients/EditClientDialog";
 
 export default function ClientDetail() {
   const { id } = useParams();
@@ -206,3 +206,4 @@ export default function ClientDetail() {
     </div>
   );
 }
+

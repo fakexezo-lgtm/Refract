@@ -5,10 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, TrendingUp } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { STAGES } from "@/lib/constants";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { STAGES } from "@/constants";
+import { apiRoutes } from "@/services/apiRoutes";
 import { useQueryClient } from "@tanstack/react-query";
-import { logActivity } from "@/lib/activity";
+import { logActivity } from "@/services/activity";
 import EmptyState from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 

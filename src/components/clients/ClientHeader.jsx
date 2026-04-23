@@ -6,7 +6,7 @@ import { ArrowLeft01Icon, MoreHorizontalIcon, Mail01Icon, CallIcon, Edit01Icon, 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/services/base44Client";
 
 export default function ClientHeader({ client, onStatusChange, onEdit, tabs }) {
   const navigate = useNavigate();
@@ -162,3 +162,4 @@ export default function ClientHeader({ client, onStatusChange, onEdit, tabs }) {
     </div>
   );
 }
+

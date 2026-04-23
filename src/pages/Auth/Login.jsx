@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffIcon, Mail01Icon, LockPasswordIcon, ArrowRight01Icon, UserIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { validateEmail } from "@/lib/authErrorMap";
+import { validateEmail } from "@/constants/authErrorMap";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -240,3 +240,4 @@ export default function Login() {
     </AuthLayout>
   );
 }
+

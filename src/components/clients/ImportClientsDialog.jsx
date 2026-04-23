@@ -7,10 +7,10 @@ import { Upload02Icon, Delete02Icon, InformationCircleIcon, CheckmarkCircle02Ico
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
-import { pickAvatarColor } from "@/lib/constants";
-import { logActivity } from "@/lib/activity";
-import { cn } from "@/lib/utils";
+import { apiRoutes } from "@/services/apiRoutes";
+import { pickAvatarColor } from "@/constants";
+import { logActivity } from "@/services/activity";
+import { cn } from "@/utils";
 
 export default function ImportClientsDialog({ open, onOpenChange }) {
   const qc = useQueryClient();
@@ -302,3 +302,4 @@ export default function ImportClientsDialog({ open, onOpenChange }) {
     </Dialog>
   );
 }
+

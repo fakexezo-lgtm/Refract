@@ -1,15 +1,15 @@
 // @ts-nocheck
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import TaskRow from "@/components/dashboard/TaskRow";
 import PipelineSnapshot from "@/components/dashboard/PipelineSnapshot";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import EmptyState from "@/components/shared/EmptyState";
-import { parseISO, isPast } from "@/lib/format";
+import { parseISO, isPast } from "@/utils/format";
 import { format } from "date-fns";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
   Calendar03Icon, 

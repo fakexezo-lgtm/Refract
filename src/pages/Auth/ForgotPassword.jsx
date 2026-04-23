@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import AuthLayout from "./AuthLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, ArrowRight01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { validateEmail } from "@/lib/authErrorMap";
+import { validateEmail } from "@/constants/authErrorMap";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -119,3 +119,4 @@ export default function ForgotPassword() {
     </AuthLayout>
   );
 }
+

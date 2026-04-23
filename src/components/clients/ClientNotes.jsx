@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Note02Icon, Add01Icon, Edit01Icon, Delete03Icon, UserIcon, CheckmarkSquareIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { useQueryClient } from "@tanstack/react-query";
-import { timeAgo } from "@/lib/format";
+import { timeAgo } from "@/utils/format";
 import EmptyState from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import {
@@ -132,3 +132,4 @@ export default function ClientNotes({ notes = [], client, onAdd, onEdit }) {
     </div>
   );
 }
+

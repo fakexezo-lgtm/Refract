@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import AuthLayout from "./AuthLayout";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -226,3 +226,4 @@ export default function VerifyEmail() {
     </AuthLayout>
   );
 }
+

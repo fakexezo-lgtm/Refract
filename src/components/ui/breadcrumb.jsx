@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRightIcon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const Breadcrumb = React.forwardRef(
   ({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />
@@ -91,3 +91,4 @@ export {
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
 }
+

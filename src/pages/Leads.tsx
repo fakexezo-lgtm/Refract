@@ -28,10 +28,10 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useLeads, Lead } from '@/context/LeadContext';
 import { useHeaderActions } from '@/context/HeaderActionContext';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/utils';
 import ImportExportLeads from '@/components/leads/ImportExportLeads';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
+import { Checkbox } from '@/components/ui/animated-checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -578,3 +578,4 @@ export default function Leads() {
     </div>
   );
 }
+

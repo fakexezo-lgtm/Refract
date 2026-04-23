@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Note02Icon, CheckmarkSquareIcon, TrendingUp, UserAdd01Icon, CircleIcon } from "@hugeicons/core-free-icons";
 
-import { timeAgo } from "@/lib/format";
+import { timeAgo } from "@/utils/format";
 import Avatar from "@/components/shared/Avatar";
 
 const ICONS = {

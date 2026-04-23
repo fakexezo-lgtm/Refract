@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { pickAvatarColor } from "@/lib/constants";
-import { logActivity } from "@/lib/activity";
+import { pickAvatarColor } from "@/constants";
+import { logActivity } from "@/services/activity";
 
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 
 export default function QuickAddClientDialog({ open, onOpenChange }) {
   const qc = useQueryClient();

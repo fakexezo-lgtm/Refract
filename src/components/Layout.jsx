@@ -4,7 +4,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DashboardSquareIcon, UserIcon, CheckmarkSquareIcon, SettingsIcon, Search01Icon, Add01Icon, Menu01Icon, Cancel01Icon, FolderKanbanIcon, Logout01Icon, ZapIcon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,

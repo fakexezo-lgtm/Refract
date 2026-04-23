@@ -4,10 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { apiRoutes } from "@/lib/apiRoutes";
+import { apiRoutes } from "@/services/apiRoutes";
 import { useQueryClient } from "@tanstack/react-query";
-import { STAGES } from "@/lib/constants";
-import { logActivity } from "@/lib/activity";
+import { STAGES } from "@/constants";
+import { logActivity } from "@/services/activity";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -168,3 +168,4 @@ export default function AddDealDialog({ open, onOpenChange, initialStage = "lead
 function cn(...classes) {
   return classes.filter(Boolean).join(' ');
 }
+

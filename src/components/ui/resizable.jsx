@@ -4,7 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { DragIcon } from "@hugeicons/core-free-icons"
 import * as ResizablePrimitive from "react-resizable-panels"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const ResizablePanelGroup = ({
   className,
@@ -41,3 +41,4 @@ const ResizableHandle = ({
 )
 
 export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+

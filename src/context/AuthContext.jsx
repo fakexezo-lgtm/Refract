@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
-import { mapAuthError } from './authErrorMap';
+import { supabase } from '@/services/supabaseClient';
+import { mapAuthError } from '@/constants/authErrorMap';
 
 const AuthContext = createContext(null);
 

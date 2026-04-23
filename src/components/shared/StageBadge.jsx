@@ -1,6 +1,6 @@
 import React from "react";
-import { STAGES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { STAGES } from "@/constants";
+import { cn } from "@/utils";
 
 export default function StageBadge({ stage, className }) {
   const s = STAGES.find(s => s.id === stage) || STAGES[0];

@@ -3,7 +3,7 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Tick01Icon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
   <CheckboxPrimitive.Root
@@ -21,3 +21,4 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
 Checkbox.displayName = CheckboxPrimitive.Root.displayName
 
 export { Checkbox }
+

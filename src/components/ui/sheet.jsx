@@ -6,7 +6,7 @@ import { cva } from "class-variance-authority";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Close } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const Sheet = SheetPrimitive.Root
 
@@ -109,3 +109,4 @@ export {
   SheetTitle,
   SheetDescription,
 }
+

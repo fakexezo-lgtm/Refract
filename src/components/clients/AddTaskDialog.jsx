@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
-import { logActivity } from "@/lib/activity";
+import { apiRoutes } from "@/services/apiRoutes";
+import { logActivity } from "@/services/activity";
 import { DatePicker } from "@/components/ui/date-picker";
 import { parseDate, getLocalTimeZone, today } from "@internationalized/date";
 

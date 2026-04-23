@@ -23,7 +23,7 @@ import {
   ArrowLeft01Icon, 
   ArrowRight01Icon 
 } from "@hugeicons/core-free-icons";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 export interface DatePickerProps<T extends DateValue> extends AriaDatePickerProps<T> {
   label?: string;
@@ -113,3 +113,4 @@ export function DatePicker<T extends DateValue>({
     </AriaDatePicker>
   );
 }
+

@@ -6,7 +6,7 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Tick01Icon, ArrowDown01Icon, ArrowUp01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const Select = SelectPrimitive.Root
 
@@ -121,3 +121,4 @@ export {
   SelectScrollUpButton,
   SelectScrollDownButton,
 }
+

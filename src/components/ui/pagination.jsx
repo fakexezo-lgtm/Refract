@@ -2,7 +2,7 @@ import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 import { buttonVariants } from "@/components/ui/button";
 
 const Pagination = ({
@@ -99,3 +99,4 @@ export {
   PaginationNext,
   PaginationEllipsis,
 }
+

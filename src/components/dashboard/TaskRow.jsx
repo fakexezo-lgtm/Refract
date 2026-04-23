@@ -3,13 +3,13 @@ import React, { useState, useRef, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
-import { logActivity } from "@/lib/activity";
-import { shortDate, parseISO, isPast } from "@/lib/format";
+import { apiRoutes } from "@/services/apiRoutes";
+import { logActivity } from "@/services/activity";
+import { shortDate, parseISO, isPast } from "@/utils/format";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MoreVerticalIcon, Edit01Icon, Delete03Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,

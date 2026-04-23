@@ -4,7 +4,7 @@ import { cva } from "class-variance-authority"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDownIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const NavigationMenu = React.forwardRef(({ className, children, ...props }, ref) => (
   <NavigationMenuPrimitive.Root
@@ -103,3 +103,4 @@ export {
   NavigationMenuIndicator,
   NavigationMenuViewport,
 }
+

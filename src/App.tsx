@@ -1,10 +1,10 @@
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
+import { queryClientInstance } from '@/services/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { useAuth } from '@/lib/AuthContext';
+import PageNotFound from '@/pages/PageNotFound';
+import { useAuth } from '@/context/AuthContext';
 
 import Landing from '@/pages/Landing';
 import Onboarding from '@/pages/Onboarding';

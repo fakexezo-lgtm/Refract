@@ -4,8 +4,8 @@ import TaskRow from "@/components/dashboard/TaskRow";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { parseISO, isPast } from "@/lib/format";
+import { cn } from "@/utils";
+import { parseISO, isPast } from "@/utils/format";
 import { AnimatePresence } from "framer-motion";
 import EmptyState from "@/components/shared/EmptyState";
 

@@ -11,8 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiRoutes } from "@/lib/apiRoutes";
-import { logActivity } from "@/lib/activity";
+import { apiRoutes } from "@/services/apiRoutes";
+import { logActivity } from "@/services/activity";
 
 const STAGES = [
   { id: "lead", label: "Lead" },
@@ -118,3 +118,4 @@ export default function BulkActionsBar({ selectedIds, onClear }) {
     </div>
   );
 }
+

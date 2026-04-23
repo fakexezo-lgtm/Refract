@@ -4,7 +4,7 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle02Icon, ArrowRightIcon, CircleIcon } from "@hugeicons/core-free-icons"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -156,3 +156,4 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
 }
+

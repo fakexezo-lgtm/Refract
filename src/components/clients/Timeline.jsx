@@ -2,9 +2,9 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Note02Icon, CheckmarkCircle02Icon, DashboardSquareIcon, UserIcon, CircleIcon, CheckmarkSquareIcon, FilterIcon } from "@hugeicons/core-free-icons";
-import { timeAgo, timelineGroup } from "@/lib/format";
+import { timeAgo, timelineGroup } from "@/utils/format";
 import EmptyState from "@/components/shared/EmptyState";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const ICONS = {
   note: Note02Icon,

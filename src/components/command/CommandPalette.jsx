@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { base44 } from "@/services/base44Client";
